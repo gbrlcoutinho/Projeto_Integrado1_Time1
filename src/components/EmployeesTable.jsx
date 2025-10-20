@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { getAllEmployees, deleteEmployee } from '../ipc-bridge/employee.js';
 import SearchIcon from './SearchIcon';
 import './EmployeesTable.css';
-import { set } from 'zod';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -60,7 +59,7 @@ function EmployeesTable() {
 
     fetchEmployees();
   }, [currentPage, searchTerm, refreshKey]);
-  
+
   const handleDelete = async (id) => {
     try {
       await deleteEmployee(id);
