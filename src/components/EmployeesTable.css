@@ -28,17 +28,9 @@
 /* ==========================================================================
    2. LAYOUT PRINCIPAL DA TELA
    ========================================================================== */
-.employees-page {
-  min-height: 100vh;
-  background-color: #f4f6f8;
-  padding: 16px;
-}
-
-/* src/components/EmployeesTable.css */
-
 .funcionarios-container {
-  background-color: #ffffff;
-  padding: 32px 40px; /* Aumenta o padding interno também */
+  background-color: var(--cor-fundo-tela);
+  padding: 48px 48px; /* Aumentado padding vertical e horizontal */
   font-family: 'Poppins', sans-serif;
   color: var(--cor-texto-corpo);
   border-radius: 8px; /* Adiciona bordas arredondadas */
@@ -63,6 +55,7 @@
   font-size: 32px; /* Pode ajustar o tamanho se desejar */
   font-weight: 700; /* Deixa a fonte mais forte */
   color: #1D2B33;
+  flex: 0 0 auto; /* Não cresce, não encolhe, tamanho automático */
 }
 
 /* O container dos botões fica à direita */
@@ -77,7 +70,8 @@
 
 /* Container de pesquisa */
 .search-container {
-  margin-bottom: 40px;
+  margin-bottom: 32px;
+  padding: 0 24px;
   box-sizing: border-box;
 }
 
@@ -98,9 +92,9 @@
 
 .search-input {
   height: 40px;
-  border: 1px solid #E9ECEF; /* Borda completa */
-  border-radius: 8px; /* Bordas arredondadas */
-  padding: 0 40px 0 16px; /* Padding ajustado */
+  border: 1px solid var(--cor-borda-input);
+  border-radius: 6px;
+  padding: 0 40px 0 16px; /* Aumenta o padding da direita para o ícone */
   font-size: 14px;
   color: #1D2B33;
   width: 100%;
@@ -176,9 +170,9 @@
 
 .tabela-container {
   width: 100%;
-  border: none; /* Remove a borda */
-  border-radius: 0; /* Remove o arredondamento */
-  overflow: visible; /* Muda de hidden para visible */
+  border: 1px solid #E9ECEF;
+  border-radius: 8px;
+  overflow: hidden; /* Garante que o border-radius seja aplicado */
   background-color: white;
   box-shadow: none;
 }
@@ -190,7 +184,7 @@ table {
 }
 
 th, td {
-  padding: 20px 24px;
+  padding: 16px 24px;
   border-bottom: 1px solid #1D2B33;
   text-align: left !important; /* Forçar alinhamento à esquerda */
   vertical-align: middle;
