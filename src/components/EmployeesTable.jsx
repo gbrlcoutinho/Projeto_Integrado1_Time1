@@ -6,7 +6,6 @@ import './EmployeesTable.css';
 const ITEMS_PER_PAGE = 10;
 
 function EmployeesTable() {
-  // Estados para a funcionalidade da tabela
   const [allEmployees, setAllEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
