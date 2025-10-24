@@ -28,11 +28,25 @@
 /* ==========================================================================
    2. LAYOUT PRINCIPAL DA TELA
    ========================================================================== */
+.employees-page {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #f4f6f8;
+  padding: 16px;
+}
+
+/* src/components/EmployeesTable.css */
+
 .funcionarios-container {
-  background-color: var(--cor-fundo-tela);
-  padding: 48px 48px; /* Aumentado padding vertical e horizontal */
+  background-color: #ffffff;
+  padding: 32px 40px; /* Aumenta o padding interno também */
   font-family: 'Poppins', sans-serif;
   color: var(--cor-texto-corpo);
+  border-radius: 8px; /* Adiciona bordas arredondadas */
+  border: 1px solid #e9ecef; /* Adiciona uma borda sutil */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* Sombra muito leve */
+  width: 100%;
+  box-sizing: border-box;
   border-radius: 8px; /* Adiciona bordas arredondadas */
   border: 1px solid #e9ecef; /* Adiciona uma borda sutil */
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* Sombra muito leve */
@@ -54,8 +68,9 @@
   margin: 0;
   font-size: 32px; /* Pode ajustar o tamanho se desejar */
   font-weight: 700; /* Deixa a fonte mais forte */
+  font-size: 32px; /* Pode ajustar o tamanho se desejar */
+  font-weight: 700; /* Deixa a fonte mais forte */
   color: #1D2B33;
-  flex: 0 0 auto; /* Não cresce, não encolhe, tamanho automático */
 }
 
 /* O container dos botões fica à direita */
@@ -70,8 +85,7 @@
 
 /* Container de pesquisa */
 .search-container {
-  margin-bottom: 32px;
-  padding: 0 24px;
+  margin-bottom: 40px;
   box-sizing: border-box;
 }
 
@@ -90,17 +104,24 @@
 
 /* src/components/EmployeesTable.css */
 
+/* src/components/EmployeesTable.css */
+
 .search-input {
   height: 40px;
-  border: 1px solid var(--cor-borda-input);
-  border-radius: 6px;
-  padding: 0 40px 0 16px; /* Aumenta o padding da direita para o ícone */
+  border: 1px solid #E9ECEF; /* Borda completa */
+  border-radius: 8px; /* Bordas arredondadas */
+  padding: 0 40px 0 16px; /* Padding ajustado */
   font-size: 14px;
   color: #1D2B33;
   width: 100%;
   box-sizing: border-box;
-  color: #000000;
   background-color: #FFFFFF;
+}
+
+/* Adicione este novo seletor para quando o input estiver focado */
+.search-input:focus {
+  outline: none; /* Remove a borda azul padrão do navegador ao clicar */
+  border-bottom-color: #2A3E4B; /* Muda a cor da borda ao focar */
 }
 
 /* Adicione este novo seletor para quando o input estiver focado */
@@ -169,11 +190,13 @@
 
 /* src/components/EmployeesTable.css */
 
+/* src/components/EmployeesTable.css */
+
 .tabela-container {
   width: 100%;
-  border: 1px solid #E9ECEF;
-  border-radius: 8px;
-  overflow: hidden; /* Garante que o border-radius seja aplicado */
+  border: none; /* Remove a borda */
+  border-radius: 0; /* Remove o arredondamento */
+  overflow: visible; /* Muda de hidden para visible */
   background-color: white;
   box-shadow: none;
 }
@@ -185,10 +208,11 @@ table {
 }
 
 th, td {
-  padding: 16px 24px;
+  padding: 20px 24px;
   border-bottom: 1px solid #1D2B33;
   text-align: left !important; /* Forçar alinhamento à esquerda */
   vertical-align: middle;
+  border-bottom: none; /* Remove a borda daqui */
   border-bottom: none; /* Remove a borda daqui */
 }
 
@@ -196,6 +220,10 @@ th, td {
 .tabela-container table th,
 .tabela-container table td {
   text-align: left !important;
+}
+
+tbody tr {
+  border-bottom: 1px solid #e9ecef;
 }
 
 tbody tr {
@@ -303,7 +331,7 @@ td {
   */
   .tabela-container td::before {
     content: attr(data-label); /* Pega o texto do atributo data-label */
-    margin-right: 8px;
+    position: absolute;
     left: 16px;
     font-weight: 600;
     color: #333;
