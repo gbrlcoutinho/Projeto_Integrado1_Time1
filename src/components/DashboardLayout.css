@@ -4,7 +4,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  
+
   /* O resto continua igual */
   display: flex;
   flex-direction: column;
@@ -46,7 +46,8 @@
   }
 
   .page-content {
-    /* Reduz o espaçamento em telas menores para economizar espaço */
-    padding: 24px;
+    flex-grow: 1;
+    overflow-y: auto;
+    box-sizing: border-box;
   }
 }
