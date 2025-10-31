@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { getAllEmployees, deleteEmployee } from '../ipc-bridge/employee.js';
 import SearchIcon from './SearchIcon';
+import CadastroFuncionarioModal from './cadastroFuncionarioModal/CadastroFuncionarioModal.jsx';
 import './EmployeesTable.css';
 
 const ITEMS_PER_PAGE = 10;
@@ -29,6 +30,8 @@ function EmployeesTable() {
   const handleSearchChange = (e) => {
     setSearchText(e.target.value);
   }
+  const [isCadastroModalOpen, setCadastroModalOpen] = useState(false);
+
   // --- BUSCA DE DADOS (useEffect do código original, levemente adaptado) ---
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -120,7 +123,11 @@ function EmployeesTable() {
 
         <header className="page-header">
           <h1>Funcionários</h1>
-          <button className="btn btn-primary">CADASTRAR FUNCIONÁRIO</button>
+          <button
+            className="btn btn-primary"
+            onClick={() => setCadastroModalOpen(true)}>
+            CADASTRAR FUNCIONÁRIO
+          </button>
         </header>
 
         <div className="search-container">
@@ -194,6 +201,10 @@ function EmployeesTable() {
           </div>
         </footer>
       </div>
+      <CadastroFuncionarioModal
+        isOpen={isCadastroModalOpen}
+        onClose={() => setCadastroModalOpen(false)}
+      />
     </div>
   );
 }
