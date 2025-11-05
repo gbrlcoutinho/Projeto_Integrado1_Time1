@@ -26,3 +26,7 @@ ipcMain.handle('get-all-employees', async (_, { page, limit, searchTerm }) => {
 ipcMain.handle('create-employee', async (_, payload) => {
   employeeService.create(payload);
 });
+
+ipcMain.handle('update-employee', async (_, payload) => {
+  employeeService.update(payload);
+});

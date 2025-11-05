@@ -14,19 +14,21 @@ export const seedDB = (db) => {
 
     const employeeService = new EmployeeService(db);
 
-    employeeService.create({
-      name: "Valdomir Ferreira Santiago",
-      function: "Operador da ETA",
+    const createdId = employeeService.create({
+      name: "Valdomir Ferreira",
+      function: "Encanador",
       cellphone: "(88) 98864-2252",
       availabilities: ["ETA", "PLANTAO_TARDE"],
       restrictions: ["WEEKENDS", "HOLYDAYS"]
     });
-    employeeService.create({
-      name: "Antônio Fagundes Ferreira",
-      function: "Encanador",
-      cellphone: "(88) 97634-1821",
+
+    employeeService.update({
+      id: createdId,
+      name: "Valdomir Ferreira Santiago",
+      function: "Operador da ETA",
+      cellphone: "(88) 98864-2252",
       availabilities: ["ETA"],
-      restrictions: ["HOLYDAYS"]
+      restrictions: []
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : JSON.stringify(error);
