@@ -6,8 +6,7 @@ import os from 'node:os'
 import { update } from './update'
 import { db } from "../database/setup";
 import { migrateDB } from '../database/migrate'
-import { getEmployeesPaginated } from '../database/employeeRepository'
-import { AuthService } from '../preload/services/auth'
+import "./handlers";
 
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -42,16 +41,6 @@ if (!app.requestSingleInstanceLock()) {
   app.quit()
   process.exit(0)
 }
-
-ipcMain.handle('auth-login', async (_event, email, password) => {
-  try {
-    const auth = new AuthService()
-    const token = auth.login(email, password) // lança se inválido
-    return { ok: true, token }
-  } catch (err) {
-    return { ok: false, error: err?.message ?? String(err) }
-  }
-})
 
 let win = null
 const preload = path.join(__dirname, '../preload/index.mjs')
@@ -139,8 +128,4 @@ ipcMain.handle('open-win', (_, arg) => {
   } else {
     childWindow.loadFile(indexHtml, { hash: arg })
   }
-})
-
-ipcMain.handle('get-all-employees', async (_, { page, limit, searchTerm }) => {
-  return getEmployeesPaginated(page, limit, searchTerm);
 })

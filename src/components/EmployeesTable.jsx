@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { getAllEmployees } from '../employeeService.js';
+import { getAllEmployees } from '../ipc-bridge/employee.js';
 import SearchIcon from './SearchIcon';
 import './EmployeesTable.css';
 
