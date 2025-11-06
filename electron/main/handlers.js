@@ -1,5 +1,4 @@
 import { ipcMain } from "electron";
-import { getEmployeesPaginated } from "../database/employeeRepository";
 import { EmployeeService } from "../preload/services/employee";
 import { db } from "../database/setup";
 import { AuthService } from "../preload/services/auth";
@@ -19,8 +18,8 @@ ipcMain.handle('auth-login', async (_event, email, password) => {
 // employee
 const employeeService = new EmployeeService(db);
 
-ipcMain.handle('get-all-employees', async (_, { page, limit, searchTerm }) => {
-  return getEmployeesPaginated(page, limit, searchTerm);
+ipcMain.handle('get-all-employees', async (_, params) => {
+  return employeeService.getPaginated(params);
 });
 
 ipcMain.handle('create-employee', async (_, payload) => {

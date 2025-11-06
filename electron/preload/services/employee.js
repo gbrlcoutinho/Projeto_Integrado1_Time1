@@ -7,6 +7,23 @@ export class EmployeeService {
     this.repository = new EmployeeRepository(db);
   }
 
+  getPaginated(params) {
+    try {
+      const parseResult = paginateEmployeeSchema.parse(params);
+      
+      return this.repository.getPaginated(
+        parseResult.page,
+        parseResult.limit,
+        parseResult.searchTerm
+      );
+    } catch (err) {
+      if (err instanceof ZodError) {
+        throw new Error(`Erro de validação dos parâmetros de paginação: ${err.message}`);
+      }
+      throw new Error(`Erro inesperado: ${err.message}`);
+    }
+  }
+
   create(payload) {
     try {
       const parseResult = createEmployeeSchema.parse(payload);
@@ -74,3 +91,9 @@ const createEmployeeSchema = z.object({
 const updateEmployeeSchema = createEmployeeSchema.extend({
   id: z.uuid("Identificador inválido.")
 });
+
+const paginateEmployeeSchema = z.object({
+  page: z.number("Página é obrigatória.").int().min(1, "Mínimo de 1").default(1), 
+  limit: z.number("Limite é obrigatório.").int().min(1, "Mínimo de 1").default(10), 
+  searchTerm: z.string().optional().default("")
+}).strict();

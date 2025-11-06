@@ -8,15 +8,8 @@
  * @returns {Promise<Array<Object>>} Uma promessa que resolve para um array de funcionários.
  */
 export const getAllEmployees = async ({ page, limit, searchTerm = "" }) => {
-  try {
-
-    const response = await window.ipcRenderer.invoke('get-all-employees', { page, limit, searchTerm });
-    return response;
-  } catch (error) {
-    console.error('Erro ao buscar funcionários via IPC:', error);
-    // Retorna um array vazio em caso de erro para não quebrar a UI
-    return { employees: [], totalCount: 0 };
-  }
+  // Error throw should be handled on frontend function call.
+  return await window.ipcRenderer.invoke('get-all-employees', { page, limit, searchTerm });
 };
 
 export const createEmployee = async (payload) => {
