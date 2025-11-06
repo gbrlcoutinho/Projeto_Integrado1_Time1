@@ -9,8 +9,10 @@ export const getEmployeesPaginated = (page = 1, limit = 10, searchTerm = "") => 
 
         if (searchTerm && searchTerm.trim() !== "") {
             const pattern = `%${searchTerm.toLocaleLowerCase().trim()}%`;
-            whereClause = `WHERE lower(name) LIKE ? OR lower(function) LIKE ?`;
+            whereClause = `WHERE (lower(name) LIKE ? OR lower(function) LIKE ?) AND deleted = 0`;
             searchParams.push(pattern, pattern);
+        } else {
+            whereClause = `WHERE deleted = 0`;
         }
 
         const { total } = db.prepare(

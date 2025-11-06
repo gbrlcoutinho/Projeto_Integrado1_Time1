@@ -1,26 +1,32 @@
 import { useState, useEffect, useRef } from 'react';
-import { getAllEmployees } from '../ipc-bridge/employee.js';
+import { getAllEmployees, deleteEmployee } from '../ipc-bridge/employee.js';
 import SearchIcon from './SearchIcon';
 import './EmployeesTable.css';
+import { set } from 'zod';
 
 const ITEMS_PER_PAGE = 10;
 
 function EmployeesTable() {
+  // Estados para a funcionalidade da tabela
   const [allEmployees, setAllEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Novos estados para a funcionalidade da UI
+  // Estados para a funcionalidade da pesquisa
   const [searchTerm, setSearchTerm] = useState('');
   const [searchText, setSearchText] = useState('');
   const searchInputRef = useRef(null);
 
+  // Estados para a funcionalidade de paginação
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
   const firstRowIndex = (currentPage - 1) * ITEMS_PER_PAGE + 1;
   const lastRowIndex = Math.min(currentPage * ITEMS_PER_PAGE, totalCount);
+
+  // Estado para a funcionalidade de atualização
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const handleSearchChange = (e) => {
     setSearchText(e.target.value);
@@ -53,7 +59,20 @@ function EmployeesTable() {
     };
 
     fetchEmployees();
-  }, [currentPage, searchTerm]);
+  }, [currentPage, searchTerm, refreshKey]);
+  
+  const handleDelete = async (id) => {
+    try {
+      await deleteEmployee(id);
+
+      setRefreshKey((prevKey) => prevKey + 1);
+      if (allEmployees.length === 1 && currentPage > 1) {
+        setCurrentPage(currentPage - 1);
+      }
+    } catch (error) {
+      setError(error.message || "Erro desconhecido");
+    }
+  };
 
   useEffect(() => {
     if (searchText === searchTerm) return;

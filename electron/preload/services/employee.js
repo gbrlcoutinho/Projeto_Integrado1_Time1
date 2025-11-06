@@ -36,6 +36,21 @@ export class EmployeeService {
       throw new Error(`Erro inesperado: ${err.message}`);
     }
   }
+
+  delete(id) {
+    try {
+      const parseResult = z.uuid("Identificador inválido.").parse(id);
+      this.repository.delete(parseResult);
+    } catch (err) {
+      if (err instanceof ZodError) {
+        throw new Error(`Erro de validação dos dados: ${err.message}`);
+      }
+      if (err instanceof SqliteError) {
+        throw new Error(`Erro no banco de dados: ${err.message}`);
+      }
+      throw new Error(`Erro inesperado: ${err.message}`);
+    }
+  }
 }
 
 const createEmployeeSchema = z.object({

@@ -90,4 +90,10 @@ export class EmployeeRepository {
       }
     })()
   }
+
+  delete(id) {
+    this.db.transaction(() => {
+      this.db.prepare("UPDATE employees SET deleted = 1 WHERE id = @id").run({ id });
+    })()
+  }
 }

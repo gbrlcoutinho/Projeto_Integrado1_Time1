@@ -28,3 +28,8 @@ export const updateEmployee = async (payload) => {
   // Error throw should be handled on frontend function call.
   return await window.ipcRenderer.invoke('update-employee', payload);
 };
+
+export const deleteEmployee = async (id) => {
+  // Error throw should be handled on frontend function call.
+  return await window.ipcRenderer.invoke('delete-employee', id);
+}

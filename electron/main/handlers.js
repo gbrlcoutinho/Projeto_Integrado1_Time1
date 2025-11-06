@@ -30,3 +30,7 @@ ipcMain.handle('create-employee', async (_, payload) => {
 ipcMain.handle('update-employee', async (_, payload) => {
   employeeService.update(payload);
 });
+
+ipcMain.handle('delete-employee', async (_, id) => {
+  employeeService.delete(id);
+});
