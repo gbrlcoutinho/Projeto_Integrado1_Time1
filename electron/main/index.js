@@ -8,6 +8,7 @@ import { db } from "../database/setup";
 import { migrateDB } from '../database/migrate'
 import { getEmployeesPaginated } from '../database/employeeRepository'
 import { AuthService } from '../preload/services/auth'
+import { seedDB } from '../database/seed'
 
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -98,6 +99,7 @@ async function createWindow() {
 // Creates the window of the app.
 app.whenReady().then(() => {
   migrateDB(db);
+  seedDB(db);
   // console.log(new AuthService().login("admin@mail.com", "admin"));
   createWindow();
 });
