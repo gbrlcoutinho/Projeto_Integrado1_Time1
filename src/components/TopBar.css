@@ -2,20 +2,20 @@
 
 .topbar {
   background-color: #2A3E4B;
-  height: 84px;
+  height: 81px;
   flex-shrink: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
   /* ALTERAÇÃO 1: Aumentado o padding horizontal para alinhar com o conteúdo */
-  padding: 0 40px;
+  padding: 22px 30px;
+  width: 100%;
 }
 
 .topbar-logo {
-  /* ALTERAÇÃO 2: Aumentada a altura da logo para maior destaque */
-  height: 36px;
+  height: 30px;
   width: auto;
-  /* Mantém a proporção */
+  flex-shrink: 0;
 }
 
 .user-info {
