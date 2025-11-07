@@ -1,22 +1,17 @@
 // src/components/EmployeesTable.jsx
 
 import React, { useState, useEffect, useRef } from 'react';
-import { getAllEmployees } from '../employeeService.js'; // Ajuste o caminho se necessário
-import './EmployeesTable.css'; // Crie este arquivo para os estilos
+import { getAllEmployees } from '../employeeService.js'; // Mantemos, mas não usamos
+import './EmployeesTable.css';
 import SearchIcon from './SearchIcon';
-// --- RESOLUÇÃO DO CONFLITO 1 ---
-// Mantivemos os dois imports, o seu e o da main.
-import CadastroFuncionarioModal from './cadastroFuncionarioModal/CadastroFuncionarioModal.jsx';
-import { use } from 'react';
 
-// DADOS MOCKADOS
-const mockFuncionarios = [
-  { id: 1, name: 'Gideony', function: 'Operador da ETA', cellphone: '(11) 98765-4321' },
-  { id: 2, name: 'José Airton', function: 'Encanador', cellphone: '(21) 91234-5678' },
-  { id: 3, name: 'Mariana', function: 'Técnica de Tratamento', cellphone: '(31) 99876-5432' },
-  { id: 4, name: 'Carlos', function: 'Supervisor', cellphone: '(41) 91111-2222' },
-];
+// --- INÍCIO DAS MUDANÇAS ---
+import FuncionarioModal from './FuncionarioModal/FuncionarioModal.jsx'; // Nome do modal corrigido
+import { mockEmployees } from '../mockData.js'; // Importamos os mocks
+// import { use } from 'react'; // 'use' não estava sendo usado, removido
+// --- FIM DAS MUDANÇAS ---
 
+// DADOS MOCKADOS (bloco antigo removido)
 const ITEMS_PER_PAGE = 10;
 
 function EmployeesTable() {
@@ -28,12 +23,14 @@ function EmployeesTable() {
   // Novos estados para a funcionalidade da UI
   const [searchTerm, setSearchTerm] = useState('');
 
-  // --- RESOLUÇÃO DO CONFLITO 2 ---
-  // Mantivemos o seu estado do modal E os estados da main
-  const [isCadastroModalOpen, setCadastroModalOpen] = useState(false);
+  // --- INÍCIO DAS MUDANÇAS: Estados do Modal ---
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState('create');
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  // --- FIM DAS MUDANÇAS ---
+
   const [searchText, setSearchText] = useState('');
   const searchInputRef = useRef(null);
-
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
@@ -45,50 +42,53 @@ function EmployeesTable() {
     setSearchText(e.target.value);
   }
 
-  // --- BUSCA DE DADOS (useEffect) ---
+  // --- INÍCIO DAS MUDANÇAS: useEffect usando MOCKS ---
   useEffect(() => {
-    const fetchEmployees = async () => {
+    const fetchEmployees = () => {
       try {
-        if (loading) return; // Se já estiver carregando, não faz nada
-
+        if (loading) return;
         setLoading(true);
-
-        // --- RESOLUÇÃO DO CONFLITO 3 ---
-        // Usamos a versão da 'main', que busca dados com paginação e busca (searchTerm).
-        // A sua versão (HEAD) que misturava mocks foi descartada
-        // porque a 'main' parece ter a lógica de backend correta.
         setError(null);
 
-        const response = await getAllEmployees({
-          page: currentPage,
-          limit: ITEMS_PER_PAGE,
-          searchTerm: searchTerm
-        });
+        // 1. Simula a busca (filtra os mocks)
+        const filteredEmployees = mockEmployees.filter(emp =>
+          emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          emp.function.toLowerCase().includes(searchTerm.toLowerCase())
+        );
 
-        setAllEmployees(response.employees);
-        setTotalCount(response.totalCount);
+        // 2. Simula a paginação
+        const total = filteredEmployees.length;
+        const start = (currentPage - 1) * ITEMS_PER_PAGE;
+        const end = start + ITEMS_PER_PAGE;
+        const paginatedEmployees = filteredEmployees.slice(start, end);
+
+        // 3. Simula a resposta da API (com um delay falso)
+        setTimeout(() => {
+          setAllEmployees(paginatedEmployees);
+          setTotalCount(total);
+          setLoading(false);
+        }, 300); // 300ms de "loading"
 
       } catch (err) {
-        console.error("Erro ao buscar dados dos funcionários:", err);
+        console.error("Erro ao simular dados dos funcionários:", err);
         setError(err.message || "Erro desconhecido");
         setAllEmployees([]);
         setTotalCount(0);
-      } finally {
         setLoading(false);
       }
     };
 
     fetchEmployees();
-  }, [currentPage, searchTerm]); // A lógica da 'main' estava correta aqui
+  }, [currentPage, searchTerm]);
+  // --- FIM DAS MUDANÇAS: useEffect ---
+
 
   // Estes useEffects vieram da 'main' e são necessários para a busca funcionar
   useEffect(() => {
     if (searchText === searchTerm) return;
-
     const delaySearch = setTimeout(() => {
       setSearchTerm(searchText);
     }, 300);
-
     return () => clearTimeout(delaySearch);
   }, [searchText, searchTerm]);
 
@@ -116,49 +116,62 @@ function EmployeesTable() {
     }
   };
 
-  // --- FUNÇÃO PARA RENDERIZAR TAGS ---
-  // (Esta função não estava no conflito, veio da sua branch)
-  const renderTags = (tagsString, className = 'tag') => {
-    if (!tagsString || tagsString.trim() === '') {
-      return 'N/A'; // Ou null se preferir não mostrar nada
-    }
-    return tagsString.split(',').map(tag => tag.trim()).map(t => (
-      <span key={t} className={className}>{t}</span>
-    ));
+  // --- INÍCIO DAS MUDANÇAS: Funções do Modal ---
+  const openCreateModal = () => {
+    setModalMode('create');
+    setSelectedEmployee(null);
+    setIsModalOpen(true);
   };
+
+  const openViewModal = (employee) => {
+    setModalMode('view');
+    setSelectedEmployee(employee);
+    setIsModalOpen(true);
+  };
+
+  // Não precisamos do openEditModal aqui, pois ele é chamado de dentro do 'view'
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+  // --- FIM DAS MUDANÇAS ---
+
+  // (A função renderTags foi removida pois não estava sendo usada)
 
   // --- RENDERIZAÇÃO DE ESTADOS DE CARREGAMENTO E ERRO ---
   if (loading) {
-    return <p>Carregando lista de funcionários...</p>;
+    // (Vamos mostrar a tabela mesmo durante o loading, fica mais suave)
   }
 
   if (error) {
     return <p style={{ color: 'red' }}> Ocorreu um erro: {error}</p>;
   }
 
-  // --- RENDERIZAÇÃO PRINCIPAL (JSX ESTRUTURADO COMO O FIGMA) ---
+  // --- RENDERIZAÇÃO PRINCIPAL ---
   return (
     <div className="employees-page">
       <div className="funcionarios-container">
 
         <header className="page-header">
           <h1>Funcionários</h1>
-          {/* Mantivemos seu botão com a sua funcionalidade onClick */}
           <button
             className="btn btn-primary"
-            onClick={() => setCadastroModalOpen(true)}>
+            onClick={openCreateModal} // <-- MUDANÇA AQUI
+          >
             CADASTRAR FUNCIONÁRIO
           </button>
         </header>
 
-        {/* --- RESOLUÇÃO DO CONFLITO 4 --- */}
-        {/* Usamos a barra de busca da 'main', pois ela usa 'searchText' e 'handleSearchChange' */}
+        {/* --- CÓDIGO CORRIGIDO (Como no Figma) --- */}
         <div className="search-container">
+          {/* 1. A label estática "Pesquisar" (que estava faltando) */}
+          <label htmlFor="searchInput" className="search-label">Pesquisar</label>
           <div className="search-input-wrapper">
             <input
               type="text"
               ref={searchInputRef}
-              placeholder="Nome, cargo/função"
+              id="searchInput"
+              placeholder="Nome, cargo/função" {/* 2. Placeholder de volta */}
               className="search-input"
               value={searchText}
               onChange={handleSearchChange}
@@ -169,8 +182,6 @@ function EmployeesTable() {
           </div>
         </div>
 
-        {/* --- RESOLUÇÃO DO CONFLITO 5 --- */}
-        {/* Usamos a tabela e o rodapé da 'main', pois eles usam 'allEmployees' e a lógica de paginação */}
         <main className="tabela-container">
           <table>
             <thead>
@@ -178,20 +189,24 @@ function EmployeesTable() {
                 <th><strong>Nome Completo</strong></th>
                 <th><strong>Cargo/Função</strong></th>
                 <th><strong>Celular</strong></th>
+                {/* Coluna "Ações" removida para bater com o Figma */}
               </tr>
             </thead>
             <tbody>
               {allEmployees.length > 0 ? (
                 allEmployees.map((emp) => (
-                  <tr key={emp.id}>
+                  // --- INÍCIO DAS MUDANÇAS: Linha clicável ---
+                  <tr key={emp.id} className="clickable-row" onClick={() => openViewModal(emp)}>
                     <td data-label="Nome Completo">{emp.name}</td>
                     <td data-label="Cargo/Função">{emp.function}</td>
                     <td data-label="Celular">{emp.cellphone || '—'}</td>
+                    {/* Coluna "Ações" removida */}
                   </tr>
+                  // --- FIM DAS MUDANÇAS ---
                 ))
               ) : (
                 <tr>
-                  <td colSpan="4" className="no-results">
+                  <td colSpan="3" className="no-results"> {/* Colspan 3, não 4 */}
                     {loading ? "Buscando..." : "Nenhum funcionário encontrado."}
                   </td>
                 </tr>
@@ -225,11 +240,14 @@ function EmployeesTable() {
         </footer>
       </div>
 
-      {/* Mantivemos o seu Modal aqui no final */}
-      <CadastroFuncionarioModal
-        isOpen={isCadastroModalOpen}
-        onClose={() => setCadastroModalOpen(false)}
+      {/* --- INÍCIO DAS MUDANÇAS: Chamada do Modal Universal --- */}
+      <FuncionarioModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        initialMode={modalMode}
+        employee={selectedEmployee}
       />
+      {/* --- FIM DAS MUDANÇAS --- */}
     </div>
   );
 }
