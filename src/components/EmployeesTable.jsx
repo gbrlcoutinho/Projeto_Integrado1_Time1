@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { getAllEmployees, deleteEmployee } from '../ipc-bridge/employee.js';
 import SearchIcon from './SearchIcon';
-import CadastroFuncionarioModal from './cadastroFuncionarioModal/CadastroFuncionarioModal.jsx';
+import FuncionarioModal from './FuncionarioModal/FuncionarioModal.jsx';
 import './EmployeesTable.css';
 
 const ITEMS_PER_PAGE = 10;
@@ -13,10 +13,16 @@ function EmployeesTable() {
 
   // Estados para a funcionalidade da pesquisa
   const [searchTerm, setSearchTerm] = useState('');
+
+  // --- INÍCIO DAS MUDANÇAS: Estados do Modal ---
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState('create');
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  // --- FIM DAS MUDANÇAS ---
+
   const [searchText, setSearchText] = useState('');
   const searchInputRef = useRef(null);
 
-  // Estados para a funcionalidade de paginação
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
@@ -32,12 +38,11 @@ function EmployeesTable() {
   }
   const [isCadastroModalOpen, setCadastroModalOpen] = useState(false);
 
-  // --- BUSCA DE DADOS (useEffect do código original, levemente adaptado) ---
+  // --- BUSCA DE DADOS (useEffect) ---
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        if (loading) return; // Se já estiver carregando, não faz nada
-
+        if (loading) return;
         setLoading(true);
         setError(null);
 
@@ -49,12 +54,12 @@ function EmployeesTable() {
 
         setAllEmployees(response.employees);
         setTotalCount(response.totalCount);
+
       } catch (err) {
-        console.error("Erro ao buscar dados dos funcionários:", err);
+        console.error("Erro ao simular dados dos funcionários:", err);
         setError(err.message || "Erro desconhecido");
         setAllEmployees([]);
         setTotalCount(0);
-      } finally {
         setLoading(false);
       }
     };
@@ -77,11 +82,9 @@ function EmployeesTable() {
 
   useEffect(() => {
     if (searchText === searchTerm) return;
-
     const delaySearch = setTimeout(() => {
       setSearchTerm(searchText);
     }, 300);
-
     return () => clearTimeout(delaySearch);
   }, [searchText, searchTerm]);
 
@@ -109,14 +112,38 @@ function EmployeesTable() {
     }
   };
 
+  // --- INÍCIO DAS MUDANÇAS: Funções do Modal ---
+  const openCreateModal = () => {
+    setModalMode('create');
+    setSelectedEmployee(null);
+    setIsModalOpen(true);
+  };
+
+  const openViewModal = (employee) => {
+    setModalMode('view');
+    setSelectedEmployee(employee);
+    setIsModalOpen(true);
+  };
+
+  // Não precisamos do openEditModal aqui, pois ele é chamado de dentro do 'view'
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+  // --- FIM DAS MUDANÇAS ---
+
+  // (A função renderTags foi removida pois não estava sendo usada)
+
+  // --- RENDERIZAÇÃO DE ESTADOS DE CARREGAMENTO E ERRO ---
   if (loading) {
-    return <p>Carregando lista de funcionários...</p>;
+    // (Vamos mostrar a tabela mesmo durante o loading, fica mais suave)
   }
 
   if (error) {
     return <p style={{ color: 'red' }}> Ocorreu um erro: {error}</p>;
   }
 
+  // --- RENDERIZAÇÃO PRINCIPAL (JSX ESTRUTURADO COMO O FIGMA) ---
   return (
     <div className="employees-page">
       <div className="funcionarios-container">
@@ -125,16 +152,22 @@ function EmployeesTable() {
           <h1>Funcionários</h1>
           <button
             className="btn btn-primary"
-            onClick={() => setCadastroModalOpen(true)}>
+            onClick={openCreateModal} // <-- MUDANÇA AQUI
+          >
             CADASTRAR FUNCIONÁRIO
           </button>
         </header>
 
+        {/* --- RESOLUÇÃO DO CONFLITO 4 --- */}
+        {/* Usamos a barra de busca da 'main', pois ela usa 'searchText' e 'handleSearchChange' */}
         <div className="search-container">
+          {/* 1. A label estática "Pesquisar" (que estava faltando) */}
+          <label htmlFor="searchInput" className="search-label">Pesquisar</label>
           <div className="search-input-wrapper">
             <input
               type="text"
               ref={searchInputRef}
+              id="searchInput"
               placeholder="Nome, cargo/função"
               className="search-input"
               value={searchText}
@@ -153,20 +186,24 @@ function EmployeesTable() {
                 <th><strong>Nome Completo</strong></th>
                 <th><strong>Cargo/Função</strong></th>
                 <th><strong>Celular</strong></th>
+                {/* Coluna "Ações" removida para bater com o Figma */}
               </tr>
             </thead>
             <tbody>
               {allEmployees.length > 0 ? (
                 allEmployees.map((emp) => (
-                  <tr key={emp.id}>
+                  // --- INÍCIO DAS MUDANÇAS: Linha clicável ---
+                  <tr key={emp.id} className="clickable-row" onClick={() => openViewModal(emp)}>
                     <td data-label="Nome Completo">{emp.name}</td>
                     <td data-label="Cargo/Função">{emp.function}</td>
                     <td data-label="Celular">{emp.cellphone || '—'}</td>
+                    {/* Coluna "Ações" removida */}
                   </tr>
+                  // --- FIM DAS MUDANÇAS ---
                 ))
               ) : (
                 <tr>
-                  <td colSpan="4" className="no-results">
+                  <td colSpan="3" className="no-results"> {/* Colspan 3, não 4 */}
                     {loading ? "Buscando..." : "Nenhum funcionário encontrado."}
                   </td>
                 </tr>
@@ -201,9 +238,12 @@ function EmployeesTable() {
           </div>
         </footer>
       </div>
-      <CadastroFuncionarioModal
-        isOpen={isCadastroModalOpen}
-        onClose={() => setCadastroModalOpen(false)}
+
+      <FuncionarioModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        initialMode={modalMode}
+        employee={selectedEmployee}
       />
     </div>
   );

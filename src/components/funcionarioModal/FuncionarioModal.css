@@ -1,0 +1,335 @@
+/* Para garantir que padding e border não quebrem o layout */
+* {
+    box-sizing: border-box;
+}
+
+/* O fundo escuro que cobre a tela inteira */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+/* O container branco do modal */
+.modal-container {
+    background: #ffffff;
+    padding: 2.5rem;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 800px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    position: relative;
+    max-height: 90vh;
+    /* Adicionado para evitar que o modal seja maior que a tela */
+    overflow-y: auto;
+    /* Adicionado para permitir scroll DENTRO do modal se o conteúdo for grande */
+}
+
+/* Cabeçalho do modal (Título + Botão X) */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.modal-header h2 {
+    color: #1D2B33;
+    font-family: "Inter", sans-serif;
+    font-size: 36px;
+    font-weight: 600;
+    line-height: 133.4%;
+    font-feature-settings: 'liga' off, 'clig' off;
+    margin: 0;
+}
+
+.modal-close-btn {
+    background: none;
+    border: none;
+    font-size: 2.5rem;
+    color: #888;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+}
+
+/* O formulário em si, usando CSS Grid */
+.modal-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+/* Grupo de formulário (label + input) */
+.form-group {
+    position: relative;
+}
+
+.modal-form .full-width {
+    grid-column: 1 / -1;
+}
+
+/* Estilo dos inputs, selects e o container de tags */
+.form-group input[type="text"],
+.form-group input[type="tel"],
+.form-group select,
+.tag-input-container {
+    width: 100%;
+    height: 56px;
+    padding: 1rem;
+    font-size: 1rem;
+    border: 1px solid #1D2B33;
+    border-radius: 4px;
+    background-color: #fff;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    color: #1D2B33;
+    /* Adicionado para garantir que o texto do input seja escuro */
+}
+
+/* --- NOVO ESTILO: Campos desabilitados (Modo View) --- */
+.form-group input:disabled,
+.form-group select:disabled,
+.tag-input-container.disabled {
+    background-color: #f4f4f4;
+    /* Um cinza bem claro */
+    color: #555;
+    cursor: not-allowed;
+}
+
+.tag-input-container.disabled {
+    pointer-events: none;
+    /* Impede cliques */
+}
+
+
+/* Estilo da label "flutuante" */
+.form-group label {
+    position: absolute;
+    top: -0.65rem;
+    left: 0.75rem;
+    font-size: 0.8rem;
+    color: #1D2B33;
+    background-color: #ffffff;
+    padding: 0 0.25rem;
+    pointer-events: none;
+    transition: all 0.2s ease;
+}
+
+.form-group label::after {
+    content: ' *';
+}
+
+/* Esconde o asterisco para campos desabilitados */
+.form-group input:disabled+label::after,
+.form-group select:disabled+label::after,
+.tag-input-container.disabled+label::after {
+    content: '';
+}
+
+
+/* Quando o input está focado, muda a cor da borda e da label */
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #3A5566;
+}
+
+.form-group input:not(:placeholder-shown)+label,
+.form-group input:focus+label {
+    color: #3A5566;
+}
+
+/* Seta para os dropdowns (select e campos de tag) */
+.form-group .select-arrow {
+    position: absolute;
+    top: 50%;
+    right: 1rem;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid #1D2B33;
+    pointer-events: none;
+    transition: transform 0.2s ease;
+}
+
+.form-group .select-arrow.open {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+/* --- NOVO ESTILO: Esconde a seta no modo View --- */
+.form-group select:disabled+.select-arrow,
+.tag-input-container.disabled+.select-arrow {
+    display: none;
+}
+
+
+/* Estilos para as tags (copiado do Figma) */
+.tag-input-container {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 1rem;
+    cursor: pointer;
+    min-height: 56px;
+}
+
+.tag {
+    display: flex;
+    align-items: baseline;
+    border-radius: 100px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.9rem;
+    color: #ffffff;
+}
+
+.tag-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    margin-left: 0.25rem;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    top: 1px;
+}
+
+/* --- NOVO ESTILO: Esconde o 'X' da pílula no modo View --- */
+.tag.disabled .tag-close {
+    display: none;
+}
+
+/* Rodapé do modal */
+.modal-footer {
+    margin-top: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    /* Espaçamento entre os botões (para o modo View) */
+}
+
+/* Botão de submit (Cadastrar/Editar) */
+.modal-submit-btn {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #ffffff;
+    background-color: #3A5566;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.modal-submit-btn:hover {
+    background-color: #304755;
+}
+
+/* --- NOVOS ESTILOS: Botões de Editar e Excluir (Modo View) --- */
+.modal-edit-btn,
+.modal-delete-btn {
+    flex: 1;
+    /* Faz os botões dividirem o espaço */
+    padding: 1rem;
+    font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.modal-edit-btn {
+    background-color: #4A5A67;
+    /* Cor do figma 'Editar' */
+}
+
+.modal-edit-btn:hover {
+    background-color: #3a4752;
+}
+
+.modal-delete-btn {
+    background-color: #D73737;
+    /* Cor vermelha para 'Excluir' */
+}
+
+.modal-delete-btn:hover {
+    background-color: #b02a2a;
+}
+
+
+/* O container do menu dropdown */
+.custom-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 2px);
+    left: 0;
+    right: 0;
+    background-color: #ffffff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1002;
+    max-height: 160px;
+    overflow-y: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.5rem;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    border-radius: 100px;
+    margin: 0;
+    color: #ffffff;
+    transition: opacity 0.2s ease;
+}
+
+.dropdown-item:hover {
+    opacity: 0.85;
+}
+
+/* Mensagem de Dropdown Vazio */
+.dropdown-empty-message {
+    background-color: transparent;
+    color: #646363;
+    font-size: 0.9rem;
+    text-align: left;
+    cursor: default;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    margin: 0;
+}
+
+/* Cores das Pílulas */
+.tag-restricao {
+    background-color: #1D2B33;
+}
+
+.tag-disponibilidade {
+    background-color: #3A5566;
+}
