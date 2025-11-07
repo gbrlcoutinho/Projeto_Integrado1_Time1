@@ -2,17 +2,21 @@
 
 .topbar {
   background-color: #2A3E4B;
-  height: 84px;
+  height: 81px;
+  flex-shrink: 0;
   display: flex;
   justify-content: space-between; /* <-- MUDANÇA CRÍTICA: Alinha os itens nas pontas */
   align-items: center;
-  padding: 0 24px;
+  /* ALTERAÇÃO 1: Aumentado o padding horizontal para alinhar com o conteúdo */
+  padding: 22px 30px;
+  width: 100%;
 }
 
 /* ADICIONE ESTE NOVO ESTILO PARA A LOGO */
 .topbar-logo {
-  height: 28px; /* Defina a altura desejada para a logo na barra */
-  width: auto;  /* Mantém a proporção */
+  height: 30px;
+  width: auto;
+  flex-shrink: 0;
 }
 
 /* O resto do arquivo (.user-info, etc.) continua igual */
