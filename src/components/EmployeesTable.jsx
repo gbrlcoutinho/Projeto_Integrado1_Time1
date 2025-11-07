@@ -14,11 +14,9 @@ function EmployeesTable() {
   // Estados para a funcionalidade da pesquisa
   const [searchTerm, setSearchTerm] = useState('');
 
-  // --- INÍCIO DAS MUDANÇAS: Estados do Modal ---
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState('create');
   const [selectedEmployee, setSelectedEmployee] = useState(null);
-  // --- FIM DAS MUDANÇAS ---
 
   const [searchText, setSearchText] = useState('');
   const searchInputRef = useRef(null);
@@ -125,19 +123,9 @@ function EmployeesTable() {
     setIsModalOpen(true);
   };
 
-  // Não precisamos do openEditModal aqui, pois ele é chamado de dentro do 'view'
-
   const closeModal = () => {
     setIsModalOpen(false);
   };
-  // --- FIM DAS MUDANÇAS ---
-
-  // (A função renderTags foi removida pois não estava sendo usada)
-
-  // --- RENDERIZAÇÃO DE ESTADOS DE CARREGAMENTO E ERRO ---
-  if (loading) {
-    // (Vamos mostrar a tabela mesmo durante o loading, fica mais suave)
-  }
 
   if (error) {
     return <p style={{ color: 'red' }}> Ocorreu um erro: {error}</p>;
@@ -192,18 +180,16 @@ function EmployeesTable() {
             <tbody>
               {allEmployees.length > 0 ? (
                 allEmployees.map((emp) => (
-                  // --- INÍCIO DAS MUDANÇAS: Linha clicável ---
                   <tr key={emp.id} className="clickable-row" onClick={() => openViewModal(emp)}>
                     <td data-label="Nome Completo">{emp.name}</td>
                     <td data-label="Cargo/Função">{emp.function}</td>
                     <td data-label="Celular">{emp.cellphone || '—'}</td>
                     {/* Coluna "Ações" removida */}
                   </tr>
-                  // --- FIM DAS MUDANÇAS ---
                 ))
               ) : (
                 <tr>
-                  <td colSpan="3" className="no-results"> {/* Colspan 3, não 4 */}
+                  <td colSpan="3" className="no-results">
                     {loading ? "Buscando..." : "Nenhum funcionário encontrado."}
                   </td>
                 </tr>
