@@ -43,7 +43,7 @@
 
 .funcionarios-container {
   background-color: #ffffff;
-  padding: 32px 40px;
+  padding: 5px 15px;
   font-family: 'Poppins', sans-serif;
   color: var(--cor-texto-corpo);
   border-radius: 8px; /* Adiciona bordas arredondadas */
@@ -92,13 +92,7 @@
 .search-container {
   margin-bottom: 40px;
   box-sizing: border-box;
-}
-
-.search-container label {
-  display: block;
-  margin-bottom: 8px;
-  color: var(--cor-texto-label);
-  font-size: 14px;
+  position: relative;
 }
 
 .search-input-wrapper {
@@ -110,19 +104,40 @@
 /* src/components/EmployeesTable.css */
 
 /* src/components/EmployeesTable.css */
+.search-input {
+  width: 100%;
+  height: 56px;
+  /* <-- vindo do modal */
+  padding: 1rem;
+  /* <-- vindo do modal */
+  font-size: 1rem;
+  /* <-- vindo do modal */
+  border: 1px solid #1D2B33;
+  /* <-- vindo do modal */
+  border-radius: 4px;
+  /* <-- vindo do modal */
+  background-color: #fff;
+  color: #1D2B33;
+  box-sizing: border-box;
+}
 
 .search-input {
-  height: 40px;
-  border: 1px solid #E9ECEF;
-  /* Borda completa */
-  border-radius: 8px;
-  /* Bordas arredondadas */
-  padding: 0 40px 0 16px;
-  /* Padding ajustado */
-  font-size: 14px;
-  color: #1D2B33;
   width: 100%;
+  height: 50px;
+  /* Altura do campo */
+  padding: 1rem 40px 1rem 0;
+  /* Padding (espaço p/ ícone na direita) */
+  font-size: 1rem;
+  color: #1D2B33;
+  background-color: #fff;
+  border: none;
+  /* Sem borda de caixa */
+  border-radius: 0;
+  /* Sem cantos arredondados */
+  border-bottom: 1px solid #e9ecef;
+  /* Linha de baixo (cor do Figma) */
   box-sizing: border-box;
+  transition: border-color 0.2s ease;
   background-color: #FFFFFF;
 }
 
@@ -140,27 +155,33 @@
 
 /* Adicione este novo seletor para quando o input estiver focado */
 .search-input:focus {
+  outline: none; /* Remove a borda azul padrão do navegador ao clicar */
+  border-bottom-color: #2A3E4B; /* Muda a cor da borda ao focar */
+}
+
+/* Adicione este novo seletor para quando o input estiver focado */
+.search-input:focus {
+  outline: none; /* Remove a borda azul padrão do navegador ao clicar */
+  border-bottom-color: #2A3E4B; /* Muda a cor da borda ao focar */
+}
+
+.search-input:focus {
   outline: none;
-  /* Remove a borda azul padrão do navegador ao clicar */
-  border-bottom-color: #2A3E4B;
-  /* Muda a cor da borda ao focar */
+  border-bottom-color: #3A5566;
+  /* Cor de foco do Figma */
 }
 
 .search-icon {
   position: absolute;
-  right: 12px;
+  right: 0;
+  /* Alinha à direita */
   top: 50%;
   transform: translateY(-50%);
   pointer-events: none;
-  /* para que o ícone não interfira com o clique no input */
   display: flex;
   align-items: center;
-  color: var(--cor-texto-label);
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--cor-texto-label);
-  display: flex;
-  align-items: center;
+  color: #1D2B33;
+  /* Cor da borda/texto */
 }
 
 .search-input::placeholder {
@@ -196,9 +217,63 @@
   border-color: var(--cor-primaria-escura);
 }
 
-.btn-secondary:hover {
-  background-color: var(--cor-primaria-escura);
-  color: white;
+/* --- NOVOS ESTILOS (COPIADOS DO MODAL) --- */
+
+/* Estilo da label flutuante (estado inicial) */
+.search-container label {
+  position: absolute;
+  top: 1rem;
+  /* 16px (igual ao padding do input) */
+  left: 1rem;
+  /* 16px (igual ao padding do input) */
+  font-size: 1rem;
+  /* Começa do tamanho normal */
+  color: #1D2B33;
+  background-color: #ffffff;
+  /* Para "cortar" a borda quando subir */
+  padding: 0 0.25rem;
+  pointer-events: none;
+  transition: all 0.2s ease;
+}
+
+/* Estilo da label "Pesquisar" (do Figma) */
+.search-container .search-label {
+  display: block;
+  margin-bottom: 8px;
+  color: #1D2B33;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* --- NOVOS ESTILOS PARA BOTÕES DE AÇÃO --- */
+
+.btn-view,
+.btn-edit {
+  border-radius: 100px !important;
+  /* Força o formato de pílula */
+  padding: 0.5rem 1rem !important;
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  text-transform: uppercase;
+  color: #ffffff !important;
+}
+
+.btn-view {
+  background-color: #3A5566;
+  /* Cor "Principal" do Figma */
+}
+
+.btn-view:hover {
+  background-color: #304755;
+}
+
+.btn-edit {
+  background-color: #4A5A67;
+  /* Cor "Secundária" do Figma */
+}
+
+.btn-edit:hover {
+  background-color: #3a4752;
 }
 
 
@@ -238,6 +313,18 @@ td {
   vertical-align: middle;
   border-bottom: none; /* Remove a borda daqui */
   border-bottom: none; /* Remove a borda daqui */
+}
+
+/* Estilo para a nova coluna "Ações" */
+td[data-label="Ações"] {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Estilo para a nova coluna "Ações" */
+td[data-label="Ações"] {
+  display: flex;
+  gap: 0.5rem;
 }
 
 /* Garante que todas as células da tabela estejam alinhadas à esquerda */
@@ -364,6 +451,19 @@ td {
     font-weight: 600;
     color: #333;
     text-align: left;
+  }
+
+  /* Ajuste para os botões de ação no modo responsivo */
+  .tabela-container td[data-label="Ações"] {
+    display: flex;
+    flex-direction: row;
+    /* Faz os botões ficarem lado a lado */
+    justify-content: flex-end;
+    /* Alinha eles à direita (como o resto) */
+    align-items: center;
+    gap: 0.5rem;
+    padding-top: 20px;
+    /* Mais espaço acima dos botões */
   }
 
   /* Ajustes no espaçamento do container principal em telas muito pequenas */
