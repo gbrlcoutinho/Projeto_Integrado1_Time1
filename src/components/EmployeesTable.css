@@ -46,14 +46,20 @@
   padding: 5px 15px;
   font-family: 'Poppins', sans-serif;
   color: var(--cor-texto-corpo);
-  border-radius: 8px; /* Adiciona bordas arredondadas */
-  border: 1px solid #e9ecef; /* Adiciona uma borda sutil */
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* Sombra muito leve */
+  border-radius: 8px;
+  /* Adiciona bordas arredondadas */
+  border: 1px solid #e9ecef;
+  /* Adiciona uma borda sutil */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  /* Sombra muito leve */
   width: 100%;
   box-sizing: border-box;
-  border-radius: 8px; /* Adiciona bordas arredondadas */
-  border: 1px solid #e9ecef; /* Adiciona uma borda sutil */
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* Sombra muito leve */
+  border-radius: 8px;
+  /* Adiciona bordas arredondadas */
+  border: 1px solid #e9ecef;
+  /* Adiciona uma borda sutil */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  /* Sombra muito leve */
   width: 100%;
   box-sizing: border-box;
 }
@@ -71,10 +77,14 @@
 
 .page-header h1 {
   margin: 0;
-  font-size: 32px; /* Pode ajustar o tamanho se desejar */
-  font-weight: 700; /* Deixa a fonte mais forte */
-  font-size: 32px; /* Pode ajustar o tamanho se desejar */
-  font-weight: 700; /* Deixa a fonte mais forte */
+  font-size: 32px;
+  /* Pode ajustar o tamanho se desejar */
+  font-weight: 700;
+  /* Deixa a fonte mais forte */
+  font-size: 32px;
+  /* Pode ajustar o tamanho se desejar */
+  font-weight: 700;
+  /* Deixa a fonte mais forte */
   color: #1D2B33;
 }
 
@@ -90,98 +100,65 @@
 
 /* Container de pesquisa */
 .search-container {
-  margin-bottom: 40px;
-  box-sizing: border-box;
   position: relative;
+}
+
+.search-container label {
+  z-index: 50;
+  position: absolute;
+  top: -0.65rem;
+  left: 0.75rem;
+  font-size: 0.8rem;
+  color: #1D2B33;
+  background-color: #ffffff;
+  padding: 0 0.4rem;
+  pointer-events: none;
+  transition: all 0.2s ease;
 }
 
 .search-input-wrapper {
   position: relative;
   box-sizing: border-box;
   width: 100%;
+  border: 1px solid #1D2B3380;
+  border-radius: 8px;
 }
 
-/* src/components/EmployeesTable.css */
-
-/* src/components/EmployeesTable.css */
 .search-input {
-  width: 100%;
   height: 56px;
-  /* <-- vindo do modal */
-  padding: 1rem;
-  /* <-- vindo do modal */
-  font-size: 1rem;
-  /* <-- vindo do modal */
-  border: 1px solid #1D2B33;
-  /* <-- vindo do modal */
-  border-radius: 4px;
-  /* <-- vindo do modal */
-  background-color: #fff;
+  border: 1px solid #E9ECEF;
+  /* Borda completa */
+  border-radius: 8px;
+  /* Bordas arredondadas */
+  padding: 0 40px 0 16px;
+  /* Padding ajustado */
+  font-size: 14px;
   color: #1D2B33;
-  box-sizing: border-box;
-}
-
-.search-input {
   width: 100%;
-  height: 50px;
-  /* Altura do campo */
-  padding: 1rem 40px 1rem 0;
-  /* Padding (espaço p/ ícone na direita) */
-  font-size: 1rem;
-  color: #1D2B33;
-  background-color: #fff;
-  border: none;
-  /* Sem borda de caixa */
-  border-radius: 0;
-  /* Sem cantos arredondados */
-  border-bottom: 1px solid #e9ecef;
-  /* Linha de baixo (cor do Figma) */
   box-sizing: border-box;
-  transition: border-color 0.2s ease;
   background-color: #FFFFFF;
-}
-
-/* Adicione este novo seletor para quando o input estiver focado */
-.search-input:focus {
-  outline: none; /* Remove a borda azul padrão do navegador ao clicar */
-  border-bottom-color: #2A3E4B; /* Muda a cor da borda ao focar */
-}
-
-/* Adicione este novo seletor para quando o input estiver focado */
-.search-input:focus {
-  outline: none; /* Remove a borda azul padrão do navegador ao clicar */
-  border-bottom-color: #2A3E4B; /* Muda a cor da borda ao focar */
-}
-
-/* Adicione este novo seletor para quando o input estiver focado */
-.search-input:focus {
-  outline: none; /* Remove a borda azul padrão do navegador ao clicar */
-  border-bottom-color: #2A3E4B; /* Muda a cor da borda ao focar */
-}
-
-/* Adicione este novo seletor para quando o input estiver focado */
-.search-input:focus {
-  outline: none; /* Remove a borda azul padrão do navegador ao clicar */
-  border-bottom-color: #2A3E4B; /* Muda a cor da borda ao focar */
-}
-
-.search-input:focus {
   outline: none;
-  border-bottom-color: #3A5566;
-  /* Cor de foco do Figma */
+}
+
+.search-input-wrapper:has(.search-input:focus) {
+  border: 1px solid #1D2B33;
 }
 
 .search-icon {
   position: absolute;
-  right: 0;
-  /* Alinha à direita */
+  right: 12px;
   top: 50%;
   transform: translateY(-50%);
   pointer-events: none;
+  /* para que o ícone não interfira com o clique no input */
   display: flex;
   align-items: center;
-  color: #1D2B33;
-  /* Cor da borda/texto */
+  color: var(--cor-texto-label);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--cor-texto-label);
+  display: flex;
+  align-items: center;
 }
 
 .search-input::placeholder {
@@ -215,34 +192,6 @@
   background-color: transparent;
   color: var(--cor-primaria-escura);
   border-color: var(--cor-primaria-escura);
-}
-
-/* --- NOVOS ESTILOS (COPIADOS DO MODAL) --- */
-
-/* Estilo da label flutuante (estado inicial) */
-.search-container label {
-  position: absolute;
-  top: 1rem;
-  /* 16px (igual ao padding do input) */
-  left: 1rem;
-  /* 16px (igual ao padding do input) */
-  font-size: 1rem;
-  /* Começa do tamanho normal */
-  color: #1D2B33;
-  background-color: #ffffff;
-  /* Para "cortar" a borda quando subir */
-  padding: 0 0.25rem;
-  pointer-events: none;
-  transition: all 0.2s ease;
-}
-
-/* Estilo da label "Pesquisar" (do Figma) */
-.search-container .search-label {
-  display: block;
-  margin-bottom: 8px;
-  color: #1D2B33;
-  font-size: 14px;
-  font-weight: 500;
 }
 
 /* --- NOVOS ESTILOS PARA BOTÕES DE AÇÃO --- */
@@ -311,8 +260,10 @@ td {
   text-align: left !important;
   /* Forçar alinhamento à esquerda */
   vertical-align: middle;
-  border-bottom: none; /* Remove a borda daqui */
-  border-bottom: none; /* Remove a borda daqui */
+  border-bottom: none;
+  /* Remove a borda daqui */
+  border-bottom: none;
+  /* Remove a borda daqui */
 }
 
 /* Estilo para a nova coluna "Ações" */
@@ -445,7 +396,8 @@ td {
      e o exibe antes do conteúdo da célula, criando o par "Rótulo: Valor".
   */
   .tabela-container td::before {
-    content: attr(data-label); /* Pega o texto do atributo data-label */
+    content: attr(data-label);
+    /* Pega o texto do atributo data-label */
     position: absolute;
     left: 16px;
     font-weight: 600;
