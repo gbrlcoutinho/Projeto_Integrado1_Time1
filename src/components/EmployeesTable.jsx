@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { getAllEmployees, deleteEmployee } from '../ipc-bridge/employee.js';
+import { getAllEmployees, deleteEmployee, createEmployee, updateEmployee } from '../ipc-bridge/employee.js';
 import SearchIcon from './SearchIcon';
 import FuncionarioModal from './FuncionarioModal/FuncionarioModal.jsx';
 import './EmployeesTable.css';
@@ -13,70 +13,53 @@ function EmployeesTable() {
 
   // Estados para a funcionalidade da pesquisa
   const [searchTerm, setSearchTerm] = useState('');
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState('create');
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
-
   const [searchText, setSearchText] = useState('');
   const searchInputRef = useRef(null);
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState('create');
+  const [isCadastroModalOpen, setCadastroModalOpen] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
   const firstRowIndex = (currentPage - 1) * ITEMS_PER_PAGE + 1;
   const lastRowIndex = Math.min(currentPage * ITEMS_PER_PAGE, totalCount);
 
-  // Estado para a funcionalidade de atualização
-  const [refreshKey, setRefreshKey] = useState(0);
-
   const handleSearchChange = (e) => {
     setSearchText(e.target.value);
   }
-  const [isCadastroModalOpen, setCadastroModalOpen] = useState(false);
 
-  // --- BUSCA DE DADOS (useEffect) ---
-  useEffect(() => {
-    const fetchEmployees = async () => {
-      try {
-        if (loading) return;
-        setLoading(true);
-        setError(null);
-
-        const response = await getAllEmployees({
-          page: currentPage,
-          limit: ITEMS_PER_PAGE,
-          searchTerm: searchTerm
-        });
-
-        setAllEmployees(response.employees);
-        setTotalCount(response.totalCount);
-
-      } catch (err) {
-        console.error("Erro ao simular dados dos funcionários:", err);
-        setError(err.message || "Erro desconhecido");
-        setAllEmployees([]);
-        setTotalCount(0);
-        setLoading(false);
-      }
-    };
-
-    fetchEmployees();
-  }, [currentPage, searchTerm, refreshKey]);
-
-  const handleDelete = async (id) => {
+  const fetchEmployees = async () => {
     try {
-      await deleteEmployee(id);
+      if (loading) return;
+      setLoading(true);
+      setError(null);
 
-      setRefreshKey((prevKey) => prevKey + 1);
-      if (allEmployees.length === 1 && currentPage > 1) {
-        setCurrentPage(currentPage - 1);
-      }
-    } catch (error) {
-      setError(error.message || "Erro desconhecido");
+      const response = await getAllEmployees({
+        page: currentPage,
+        limit: ITEMS_PER_PAGE,
+        searchTerm: searchTerm
+      });
+
+      setAllEmployees(response.employees);
+      setTotalCount(response.totalCount);
+    } catch (err) {
+      console.error("Erro ao simular dados dos funcionários:", err);
+      setError(err.message || "Erro desconhecido");
+      setAllEmployees([]);
+      setTotalCount(0);
+    } finally {
+      setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchEmployees();
+  }, [currentPage, searchTerm, refreshKey]);
 
   useEffect(() => {
     if (searchText === searchTerm) return;
@@ -131,7 +114,37 @@ function EmployeesTable() {
     return <p style={{ color: 'red' }}> Ocorreu um erro: {error}</p>;
   }
 
-  // --- RENDERIZAÇÃO PRINCIPAL (JSX ESTRUTURADO COMO O FIGMA) ---
+  const handleCreate = async (payload) => {
+    try {
+      await createEmployee(payload);
+      fetchEmployees();
+    } catch (error) {
+      setError(error.message || "Erro desconhecido");
+    }
+  }
+
+  const handleUpdate = async (payload) => {
+    try {
+      await updateEmployee(payload);
+      fetchEmployees();
+    } catch (error) {
+      setError(error.message || "Erro desconhecido");
+    }
+  }
+
+  const handleDelete = async (id) => {
+    try {
+      await deleteEmployee(id);
+
+      setRefreshKey((prevKey) => prevKey + 1);
+      if (allEmployees.length === 1 && currentPage > 1) {
+        setCurrentPage(currentPage - 1);
+      }
+    } catch (error) {
+      setError(error.message || "Erro desconhecido");
+    }
+  };
+
   return (
     <div className="employees-page">
       <div className="funcionarios-container">
@@ -230,6 +243,9 @@ function EmployeesTable() {
         onClose={closeModal}
         initialMode={modalMode}
         employee={selectedEmployee}
+        handleCreate={handleCreate}
+        handleUpdate={handleUpdate}
+        handleDelete={handleDelete}
       />
     </div>
   );

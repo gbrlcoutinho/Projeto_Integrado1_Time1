@@ -1,11 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import './FuncionarioModal.css'; // ATUALIZE O IMPORT DO CSS
+import { useState, useEffect } from 'react';
+import './FuncionarioModal.css';
 
-// --- Nossas listas de opções "hardcoded" ---
-const ALL_RESTRICOES = ['Final de Semana', 'Feriados', 'Plantão da ETA'];
-const ALL_DISPONIBILIDADE = ['Plantão da Tarde', 'Plantão da Manhã', 'Feriados'];
+const availabilityOptions = [
+    { value: 'ETA', label: "ETA" },
+    { value: 'PLANTAO_TARDE', label: "Plantão da Tarde" },
+];
 
-function FuncionarioModal({ isOpen, onClose, initialMode, employee }) {
+const restrictionOptions = [
+    { value: 'WEEKENDS', label: "Final de Semana" },
+    { value: 'HOLYDAYS', label: "Feriados" },
+];
+
+function FuncionarioModal({ isOpen, onClose, initialMode, employee, handleCreate, handleUpdate, handleDelete }) {
     const [currentMode, setCurrentMode] = useState(initialMode);
 
     // --- Estados para os campos do formulário ---
@@ -37,14 +43,22 @@ function FuncionarioModal({ isOpen, onClose, initialMode, employee }) {
             setNome(employee.name || '');
             setCargo(employee.function || '');
             setTelefone(employee.cellphone || '');
-            // No seu código, os mocks usam 'constraints' e 'disponibility'
-            setRestricoes(employee.constraints || []);
-            setDisponibilidade(employee.disponibility || []);
+
+            const currentRestrictionsOptions = employee.restrictions?.split(',') ?? [];
+            setRestricoes(
+                restrictionOptions.filter(o => currentRestrictionsOptions.some(current => current === o.value))
+            );
+
+            const currentAvailabilityOptions = employee.availabilities?.split(',') ?? [];
+            setDisponibilidade(
+                availabilityOptions.filter(o => currentAvailabilityOptions.some(current => current === o.value))
+            );
         } else {
             // Se for 'create' (ou se fechar), limpa tudo
             setNome('');
             setCargo('');
             setTelefone('');
+            setCargo('Operador da ETA')
             setRestricoes([]);
             setDisponibilidade([]);
         }
@@ -61,20 +75,21 @@ function FuncionarioModal({ isOpen, onClose, initialMode, employee }) {
     // --- PASSO 2.4: Atualizado para usar 'currentMode' ---
     const handleSubmit = (e) => {
         e.preventDefault();
-        const formData = {
-            nome,
-            cargo,
-            telefone,
-            restricoes,
-            disponibilidade
+        const payload = {
+            name: nome,
+            function: cargo,
+            cellphone: telefone,
+            availabilities: disponibilidade.map(item => item.value),
+            restrictions: restricoes.map(item => item.value)
         };
 
-        if (currentMode === 'create') { // <-- MUDANÇA AQUI
-            console.log('CRIANDO FUNCIONÁRIO:', formData);
-            // Aqui você chamaria sua API de criação
-        } else if (currentMode === 'edit') { // <-- MUDANÇA AQUI
-            console.log('ATUALIZANDO FUNCIONÁRIO:', employee.id, formData);
-            // Aqui você chamaria sua API de atualização
+        if (currentMode === 'create') {
+            handleCreate(payload);
+        } else if (currentMode === 'edit') {
+            handleUpdate({
+                ...payload,
+                id: employee.id
+            });
         }
         onClose(); // Fecha o modal após o submit
     };
@@ -92,12 +107,12 @@ function FuncionarioModal({ isOpen, onClose, initialMode, employee }) {
 
     const removeRestricao = (tagToRemove) => {
         if (isDisabled) return;
-        setRestricoes(restricoes.filter(tag => tag !== tagToRemove));
+        setRestricoes(restricoes.filter(tag => tag.value !== tagToRemove.value));
     };
 
     const removeDisponibilidade = (tagToRemove) => {
         if (isDisabled) return;
-        setDisponibilidade(disponibilidade.filter(tag => tag !== tagToRemove));
+        setDisponibilidade(disponibilidade.filter(tag => tag.value !== tagToRemove.value));
     };
 
     const toggleRestricoesDropdown = () => {
@@ -112,12 +127,17 @@ function FuncionarioModal({ isOpen, onClose, initialMode, employee }) {
         setRestricoesOpen(false);
     };
 
+    const onDelete = () => {
+        handleDelete(employee.id);
+        onClose(); // Fecha o modal após o submit
+    }
+
     // --- Listas filtradas (só mostram opções disponíveis) ---
-    const availableRestricoes = ALL_RESTRICOES.filter(
-        tag => !restricoes.includes(tag)
+    const availableRestricoes = restrictionOptions.filter(
+        tag => !restricoes.map(t => t.value).includes(tag.value)
     );
-    const availableDisponibilidade = ALL_DISPONIBILIDADE.filter(
-        tag => !disponibilidade.includes(tag)
+    const availableDisponibilidade = availabilityOptions.filter(
+        tag => !disponibilidade.map(t => t.value).includes(tag.value)
     );
 
     // --- PASSO 2.4: Atualizado para usar 'currentMode' ---
@@ -125,9 +145,7 @@ function FuncionarioModal({ isOpen, onClose, initialMode, employee }) {
     if (currentMode === 'edit') modalTitle = 'Editar Funcionário'; // <-- MUDANÇA AQUI
     if (currentMode === 'view') modalTitle = 'Visualizar Funcionário'; // <-- MUDANÇA AQUI
 
-    if (!isOpen) {
-        return null;
-    }
+    if (!isOpen) return null;
 
     return (
         <div className="modal-overlay" onClick={onClose}>
@@ -146,7 +164,7 @@ function FuncionarioModal({ isOpen, onClose, initialMode, employee }) {
                         <input
                             type="text"
                             id="nome"
-                            placeholder=" "
+                            placeholder="Insira o nome do funcionário"
                             required={!isDisabled}
                             disabled={isDisabled}
                             value={nome}
@@ -160,10 +178,11 @@ function FuncionarioModal({ isOpen, onClose, initialMode, employee }) {
                             id="cargo"
                             required={!isDisabled}
                             disabled={isDisabled}
+                            placeholder="Selecione um cargo"
                             value={cargo}
                             onChange={(e) => setCargo(e.target.value)}
                         >
-                            <option value="" disabled hidden>Selecione um cargo</option>
+                            {/* <option value="" disabled hidden>Selecione um cargo</option> */}
                             <option value="Operador da ETA">Operador da ETA</option>
                             <option value="Encanador">Encanador</option>
                         </select>
@@ -175,7 +194,7 @@ function FuncionarioModal({ isOpen, onClose, initialMode, employee }) {
                         <input
                             type="tel"
                             id="telefone"
-                            placeholder=" "
+                            placeholder="Insira um número de telefone"
                             required={!isDisabled}
                             disabled={isDisabled}
                             value={telefone}
@@ -191,8 +210,8 @@ function FuncionarioModal({ isOpen, onClose, initialMode, employee }) {
                             onClick={toggleRestricoesDropdown}
                         >
                             {restricoes.map(tag => (
-                                <span key={tag} className={`tag tag-restricao ${isDisabled ? 'disabled' : ''}`}>
-                                    <span>{tag}</span>
+                                <span key={tag.value} className={`tag-func tag-restricao ${isDisabled ? 'disabled' : ''}`}>
+                                    <span>{tag.label}</span>
                                     {!isDisabled && (
                                         <button
                                             type="button"
@@ -207,6 +226,11 @@ function FuncionarioModal({ isOpen, onClose, initialMode, employee }) {
                                     )}
                                 </span>
                             ))}
+                            {!restricoes.length && (
+                                <div style={{ opacity: "70%" }}>
+                                    Selecione uma opção
+                                </div>
+                            )}
                         </div>
                         <label htmlFor="restricoes">Restrições</label>
                         <span
@@ -219,11 +243,11 @@ function FuncionarioModal({ isOpen, onClose, initialMode, employee }) {
                                 {availableRestricoes.length > 0 ? (
                                     availableRestricoes.map(tag => (
                                         <div
-                                            key={tag}
+                                            key={tag.value}
                                             className="dropdown-item tag-restricao"
                                             onClick={() => addRestricao(tag)}
                                         >
-                                            {tag}
+                                            {tag.label}
                                         </div>
                                     ))
                                 ) : (
@@ -242,8 +266,8 @@ function FuncionarioModal({ isOpen, onClose, initialMode, employee }) {
                             onClick={toggleDisponibilidadeDropdown}
                         >
                             {disponibilidade.map(tag => (
-                                <span key={tag} className={`tag tag-disponibilidade ${isDisabled ? 'disabled' : ''}`}>
-                                    <span>{tag}</span>
+                                <div key={tag.value} className={`tag-func tag-disponibilidade ${isDisabled ? 'disabled' : ''}`}>
+                                    <span>{tag.label}</span>
                                     {!isDisabled && (
                                         <button
                                             type="button"
@@ -256,8 +280,13 @@ function FuncionarioModal({ isOpen, onClose, initialMode, employee }) {
                                             &times;
                                         </button>
                                     )}
-                                </span>
+                                </div>
                             ))}
+                            {!disponibilidade.length && (
+                                <div style={{ opacity: "70%" }}>
+                                    Selecione uma opção
+                                </div>
+                            )}
                         </div>
                         <label htmlFor="disponibilidade">Disponibilidade</label>
                         <span
@@ -270,11 +299,11 @@ function FuncionarioModal({ isOpen, onClose, initialMode, employee }) {
                                 {availableDisponibilidade.length > 0 ? (
                                     availableDisponibilidade.map(tag => (
                                         <div
-                                            key={tag}
+                                            key={tag.value}
                                             className="dropdown-item tag-disponibilidade"
                                             onClick={() => addDisponibilidade(tag)}
                                         >
-                                            {tag}
+                                            {tag.label}
                                         </div>
                                     ))
                                 ) : (
@@ -307,7 +336,9 @@ function FuncionarioModal({ isOpen, onClose, initialMode, employee }) {
                                 >
                                     EDITAR
                                 </button>
-                                <button type="button" className="modal-delete-btn">
+                                <button type="button" className="modal-delete-btn"
+                                    onClick={onDelete}
+                                >
                                     EXCLUIR
                                 </button>
                             </>

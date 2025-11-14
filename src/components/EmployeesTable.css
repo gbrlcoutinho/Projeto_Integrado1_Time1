@@ -330,15 +330,15 @@ td {
   display: inline-block;
 }
 
-.tag-restricao {
+/* .tag-restricao {
   background-color: var(--cor-tag-restricao-fundo);
   color: var(--cor-tag-restricao-texto);
-}
+} */
 
-.tag-disponibilidade {
+/* .tag-disponibilidade {
   background-color: var(--cor-tag-disponibilidade-fundo);
   color: var(--cor-tag-disponibilidade-texto);
-}
+} */
 
 /* ==========================================================================
    7. FOOTER (PAGINAÇÃO)

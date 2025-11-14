@@ -185,7 +185,7 @@
     min-height: 56px;
 }
 
-.tag {
+.tag-func {
     display: flex;
     align-items: baseline;
     border-radius: 100px;

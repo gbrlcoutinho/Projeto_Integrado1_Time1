@@ -13,7 +13,7 @@ export class EmployeeRepository {
 
       if (searchTerm && searchTerm.trim() !== "") {
         const pattern = `%${searchTerm.toLocaleLowerCase().trim()}%`;
-        
+
         whereClause = `${baseWhere} AND (lower(name) LIKE ? OR lower(function) LIKE ?)`;
         searchParams.push(pattern, pattern);
       } else {
@@ -27,7 +27,22 @@ export class EmployeeRepository {
       `).get(...searchParams);
 
       const employees = this.db.prepare(`
-          SELECT id, name, function, cellphone FROM employees
+          SELECT
+          e.id,
+          e.name,
+          e."function",
+          e.cellphone,
+          (
+            SELECT GROUP_CONCAT(r.type)
+            FROM employee_restrictions r
+            WHERE r.employee_id = e.id
+          ) AS restrictions,
+          (
+            SELECT GROUP_CONCAT(a.type)
+            FROM employee_availabilities a
+            WHERE a.employee_id = e.id
+          ) AS availabilities
+        FROM employees e
           ${whereClause}
           ORDER BY name
           LIMIT ?
