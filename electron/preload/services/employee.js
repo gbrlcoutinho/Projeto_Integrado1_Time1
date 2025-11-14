@@ -10,7 +10,7 @@ export class EmployeeService {
   getPaginated(params) {
     try {
       const parseResult = paginateEmployeeSchema.parse(params);
-      
+
       return this.repository.getPaginated(
         parseResult.page,
         parseResult.limit,
@@ -73,8 +73,7 @@ export class EmployeeService {
 const createEmployeeSchema = z.object({
   name: z.string("Nome é obrigatório.").min(4, "Mínimo de 4 caracteres"),
   function: z.string("Função é obrigatória."),
-  cellphone: z.string()
-    .regex(/^\(\d{2}\)\s\d{4,5}-\d{4}$/, "Formato inválido."),
+  cellphone: z.string().regex(/^\(\d{2}\)\s\d{4,5}-\d{4}$/, "Formato inválido."),
   availabilities: z
     .array(z.enum(["ETA", "PLANTAO_TARDE"]))
     .min(1, "Funcionário deve ter pelo menos uma disponibilidade.")
@@ -93,7 +92,7 @@ const updateEmployeeSchema = createEmployeeSchema.extend({
 });
 
 const paginateEmployeeSchema = z.object({
-  page: z.number("Página é obrigatória.").int().min(1, "Mínimo de 1").default(1), 
-  limit: z.number("Limite é obrigatório.").int().min(1, "Mínimo de 1").default(10), 
-  searchTerm: z.string().optional().default("")
+  page: z.number("Página é obrigatória.").int().min(1, "Mínimo de 1").default(1),
+  limit: z.number("Limite é obrigatório.").int().min(1, "Mínimo de 1").default(10),
+  searchTerm: z.string().optional().default("")
 }).strict();

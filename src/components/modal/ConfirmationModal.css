@@ -1,0 +1,113 @@
+* {
+    box-sizing: border-box;
+}
+
+.confirmation-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1001;
+}
+
+.confirmation-modal-container {
+    background: #ffffff;
+    padding: 32px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    position: relative;
+}
+
+.confirmation-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.confirmation-modal-header h2 {
+    color: #1D2B33;
+    font-family: "Inter", sans-serif;
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 133.4%;
+    font-feature-settings: 'liga' off, 'clig' off;
+    margin: 0;
+}
+
+.confirmation-modal-close-btn {
+    background: none;
+    border: none;
+    font-size: 2.5rem;
+    color: #888;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+}
+
+.confirmation-modal-close-btn:hover {
+    color: #555;
+}
+
+.confirmation-modal-content {
+    margin-bottom: 2rem;
+}
+
+.confirmation-modal-content p {
+    color: #1D2B33;
+    font-family: "Inter", sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    margin: 0;
+    text-align: left;
+}
+
+.confirmation-modal-footer {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.confirmation-modal-cancel-btn {
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #1D2B33;
+    background-color: transparent;
+    border: 1px solid #1D2B33CC;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 120px;
+}
+
+.confirmation-modal-cancel-btn:hover {
+    background-color: #f5f5f5;
+}
+
+.confirmation-modal-confirm-btn {
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #ffffff;
+    background-color: #D73737;
+    border: 2px solid #D73737;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    min-width: 120px;
+}
+
+.confirmation-modal-confirm-btn:hover {
+    background-color: #b02a2a;
+    border-color: #b02a2a;
+}
