@@ -24,7 +24,8 @@ export const migrateDB = (db) => {
 
     console.log("Database migration successfully completed.");
   } catch (error) {
-    console.error(`Error on applying migration: ${JSON.stringify(error)}`);
+    const message = error instanceof Error ? error.message : JSON.stringify(error);
+    console.error(`Error on applying migration: ${message}`);
     console.log("It might be necessary reseting the database.");
   }
 }

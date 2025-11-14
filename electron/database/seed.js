@@ -1,12 +1,5 @@
 import { v4 } from "uuid";
-import { faker } from "@faker-js/faker"
-
-const generateFakeEmployee = () => ({
-  id: v4(),
-  name: faker.person.fullName(),
-  function: faker.helpers.arrayElement(["Encanador", "Operador da ETA"]),
-  cellphone: faker.phone.number()
-});
+import { EmployeeService } from "../preload/services/employee.js";
 
 export const seedDB = (db) => {
   try {
@@ -19,21 +12,26 @@ export const seedDB = (db) => {
       password: "$2b$10$puBkQd1odfODaeA5nqD.e.khdJercpOiji2/i.CX6D9NQKVlAx9u."
     });
 
-    const stmtEmployee = db.prepare("INSERT INTO employees (id, name, function, cellphone) VALUES (@id, @name, @function, @cellphone);");
+    const employeeService = new EmployeeService(db);
 
-    const employeesCount = 100;
-    const employees = Array.from({ length: employeesCount}, generateFakeEmployee);
-
-    const insertMany = db.transaction((emps) => {
-      for (const emp of emps) {
-        stmtEmployee.run(emp);
-      }
+    const createdId = employeeService.create({
+      name: "Valdomir Ferreira",
+      function: "Encanador",
+      cellphone: "(88) 98864-2252",
+      availabilities: ["ETA", "PLANTAO_TARDE"],
+      restrictions: ["WEEKENDS", "HOLYDAYS"]
     });
 
-    insertMany(employees);
-
-    console.log(`Database seeded with ${employeesCount} employees and Admin user.`);
+    employeeService.update({
+      id: createdId,
+      name: "Valdomir Ferreira Santiago",
+      function: "Operador da ETA",
+      cellphone: "(88) 98864-2252",
+      availabilities: ["ETA"],
+      restrictions: []
+    });
   } catch (error) {
-    console.error(`Error on seeding database: ${JSON.stringify(error)}`);
+    const message = error instanceof Error ? error.message : JSON.stringify(error);
+    console.error(`Error on seeding database: ${message}`);
   }
 }

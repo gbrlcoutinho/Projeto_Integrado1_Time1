@@ -88,7 +88,7 @@ function useLoading() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #282c34;
+  background: #2A3E4B;
   z-index: 9;
 }
     `

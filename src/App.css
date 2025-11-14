@@ -1,8 +1,75 @@
-/* src/App.css - EXEMPLO DO PROBLEMA */
-
+/* Reseta o comportamento padrão do App */
 .App {
-  max-width: 1280px; /* <--- Este é o culpado */
-  margin: 0 auto;      /* <--- E este também, pois centraliza o container */
-  padding: 2rem;
-  text-align: center;
+  /* Remove toda a centralização e padding */
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  /* Alinha o texto à esquerda por padrão */
+
+  /* Transforma o App em um container Flex (linha) */
+  display: flex;
+  min-height: 100vh;
+  /* Garante que ocupe a altura toda da tela */
+  background-color: #FFFFFF;
+  /* Fundo branco geral */
+}
+
+/* Estilo da Sidebar (Menu Lateral) */
+.sidebar {
+  width: 260px;
+  /* Largura fixa da sidebar (ajuste se necessário) */
+  flex-shrink: 0;
+  /* Impede que a sidebar encolha */
+  background-color: #1D2B33;
+  /* Cor escura da sidebar */
+  color: white;
+  /* (Seus outros estilos da sidebar, como links, vão no 
+     CSS próprio dela, ex: Sidebar.css) */
+}
+
+/* --- NOVO: Wrapper para o conteúdo da direita --- */
+/* Este container vai segurar a Topbar e o Main Content */
+.content-wrapper {
+  flex: 1;
+  /* <-- ESTE é o container que cresce e ocupa o resto da tela */
+  display: flex;
+  flex-direction: column;
+  /* Empilha a Topbar e o Conteúdo */
+  min-width: 0;
+  /* Necessário para evitar overflow de flexbox */
+}
+
+/* --- NOVO: Estilo da Topbar --- */
+/* (Baseado nos seus prints) */
+.topbar {
+  height: 70px;
+  /* Altura estimada da sua topbar, ajuste se precisar */
+  flex-shrink: 0;
+  /* Impede que encolha */
+  background-color: #1D2B33;
+  /* Cor escura do seu print */
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* Para o logo e o user ficarem nas pontas */
+  padding: 0 40px;
+  /* O mesmo padding lateral do conteúdo */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  /* Sombra sutil */
+  z-index: 10;
+  /* Garante que fique sobre o conteúdo */
+}
+
+/* Estilo do Conteúdo Principal (Onde sua tabela vai) */
+.main-content {
+  flex: 1;
+  /* <-- Faz o conteúdo crescer e preencher o espaço vertical */
+
+  /* Adiciona o padding que o .funcionarios-container tinha */
+  padding: 32px 40px;
+
+  /* Adiciona um scroll SÓ se o conteúdo for maior que a tela */
+  overflow-y: auto;
 }
