@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { getAllEmployees, deleteEmployee, createEmployee, updateEmployee } from '../ipc-bridge/employee.js';
 import SearchIcon from './SearchIcon';
-import FuncionarioModal from './FuncionarioModal/FuncionarioModal.jsx';
+import FuncionarioModal from './funcionarioModal/FuncionarioModal.jsx';
 import './EmployeesTable.css';
 
 const ITEMS_PER_PAGE = 10;
@@ -18,7 +18,6 @@ function EmployeesTable() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState('create');
-  const [isCadastroModalOpen, setCadastroModalOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -225,14 +224,14 @@ function EmployeesTable() {
               onClick={goToPreviousPage}
               disabled={currentPage === 1}
             >
-              &lt; Anterior
+              Anterior
             </button>
             <button
               className='btn btn-primary'
               onClick={goToNextPage}
               disabled={currentPage >= totalPages || totalPages === 0 || loading}
             >
-              Próximo &gt;
+              Próximo
             </button>
           </div>
         </footer>
