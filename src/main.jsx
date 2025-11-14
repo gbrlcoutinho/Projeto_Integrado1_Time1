@@ -10,7 +10,7 @@ import './demos/ipc'
 import LoginPage from './pages/LoginPage'
 
 function Root() {
-  const [route, setRoute] = React.useState(window.location.hash || '#/')
+  const [route, setRoute] = React.useState('#/login')
 
   React.useEffect(() => {
     const onHash = () => setRoute(window.location.hash || '#/')
@@ -28,9 +28,7 @@ function Root() {
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <DashboardLayout>
-      <EmployeesTable />
-    </DashboardLayout>
+    <Root />
   </React.StrictMode>,
 )
 

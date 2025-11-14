@@ -6,6 +6,7 @@ import os from 'node:os'
 import { update } from './update'
 import { db } from "../database/setup";
 import { migrateDB } from '../database/migrate'
+import "dotenv/config";
 import "./handlers";
 
 const require = createRequire(import.meta.url)
