@@ -150,12 +150,12 @@ function EmployeesTable() {
 
         <header className="page-header">
           <h1>Funcionários</h1>
-          <button
-            className="btn btn-primary"
-            onClick={openCreateModal} // <-- MUDANÇA AQUI
-          >
-            CADASTRAR FUNCIONÁRIO
-          </button>
+            <button
+              className="btn btn-primary"
+              onClick={openCreateModal}
+            >
+              CADASTRAR FUNCIONÁRIO
+            </button>
         </header>
 
         {/* --- RESOLUÇÃO DO CONFLITO 4 --- */}

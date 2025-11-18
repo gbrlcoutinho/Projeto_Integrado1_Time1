@@ -59,6 +59,57 @@ export class EmployeeRepository {
     }
   }
 
+  findEligible(availabilityType = null) {
+    try {
+      let selectClause = `
+        SELECT
+          e.id,
+          e.name,
+          e."function",
+          (
+            SELECT GROUP_CONCAT(r.type)
+            FROM employee_restrictions r
+            WHERE r.employee_id = e.id
+          ) AS restrictions,
+          (
+            SELECT GROUP_CONCAT(a.type)
+            FROM employee_availabilities a
+            WHERE a.employee_id = e.id
+          ) AS availabilities
+        FROM employees e
+      `;
+
+      let joinClause = '';
+      let whereClause = `WHERE e.deleted = 0`;
+      const params = [];
+
+      if (availabilityType && availabilityType.trim() !== '') {
+        joinClause = `
+          JOIN employee_availabilities ea 
+          ON ea.employee_id = e.id
+        `;
+        whereClause += ` AND ea.type = ?`;
+        params.push(availabilityType);
+      }
+
+      const stmt = this.db.prepare(`
+        ${selectClause}
+        ${joinClause}
+        ${whereClause}
+        GROUP BY e.id, e.name, e."function", e.cellphone 
+        ORDER BY e.name
+      `);
+
+      const employees = stmt.all(...params);
+      
+      return employees;
+      
+    } catch (error) {
+      console.error("Erro ao buscar funcionários elegíveis:", error);
+      throw new Error(`Falha no repositório buscar elegíveis: ${error.message}`);
+    }
+  }
+
   create(payload) {
     return this.db.transaction(() => {
       const userInsert = this.db.prepare("INSERT INTO employees (id, name, function, cellphone) VALUES (@id, @name, @function, @cellphone)");

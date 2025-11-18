@@ -24,6 +24,21 @@ export class EmployeeService {
     }
   }
 
+  findEligible(params) {
+    try {
+      const parseResult = findEligibleSchema.parse(params || {});
+      return this.repository.findEligible(parseResult.availabilityType);
+    } catch (err) {
+      if (err instanceof ZodError) {
+        throw new Error(`Erro de validação dos parâmetros de busca: ${err.message}`);
+      }
+      if (err instanceof SqliteError) {
+        throw new Error(`Erro no banco de dados: ${err.message}`);
+      }
+      throw new Error(`Erro inesperado: ${err.message}`);
+    }
+  }
+
   create(payload) {
     try {
       const parseResult = createEmployeeSchema.parse(payload);
@@ -96,3 +111,7 @@ const paginateEmployeeSchema = z.object({
   limit: z.number("Limite é obrigatório.").int().min(1, "Mínimo de 1").default(10),
   searchTerm: z.string().optional().default("")
 }).strict();
+
+const findEligibleSchema = z.object({
+  availabilityType: z.string().optional()
+});
