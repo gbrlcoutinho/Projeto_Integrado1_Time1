@@ -1,78 +1,116 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Scales.css'; 
+import { getScale } from '../ipc-bridge/scale';
 
-// Renomeamos a função para Scales
 const Scales: React.FC = () => {
-    // 1. Estado para a data atual
-    const [currentDate, setCurrentDate] = useState(new Date(2025, 11, 1));
+    // Estado da data atual do calendário
+    const [currentDate, setCurrentDate] = useState(new Date());
     
-    // 2. Mockup de dados de Escalas para exibição
-    const scalesData = [
-      { day: 10, employee: 'Valdomir Ferreira Santiago', color: 'yellow' },
-      { day: 16, employee: 'Valdomir Ferreira Santiago', color: 'blue' },
-      // ... (Outros dados)
-    ];
+    // Estado para armazenar os turnos vindos do banco
+    const [shifts, setShifts] = useState<any[]>([]);
+    
+    // Estado para o tipo de escala
+    const [scaleType, setScaleType] = useState<'ETA' | 'PLANTAO_TARDE'>('ETA');
 
     // Nomes dos dias da semana
     const weekDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
-    // Funções de navegação (mudar mês)
+    // Busca os dados sempre que o Mês ou o Tipo de escala mudar
+    useEffect(() => {
+      const fetchScale = async () => {
+        try {
+          // Formata a data para o formato que o Back-end espera
+          const year = currentDate.getFullYear();
+          const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // +1 porque Jan é 0
+          const monthString = `${year}-${month}`;
+
+          // Chama o Electron
+          const result = await getScale({ month: monthString, type: scaleType });
+
+          if (result && result.shifts) {
+            // Se achou escala, guarda os turnos
+            setShifts(result.shifts);
+          } else {
+            // Se não achou, limpa os turnos
+            setShifts([]);
+          }
+        } catch (error) {
+          console.error("Erro ao buscar escala:", error);
+          setShifts([]);
+        }
+      };
+
+      fetchScale();
+    }, [currentDate, scaleType]); // Roda se mudar a data ou o tipo
+
+    // Muda o mês
     const changeMonth = (delta: number) => {
       const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + delta, 1);
       setCurrentDate(newDate);
     };
 
-    // --- LÓGICA DE GERAÇÃO DOS DIAS DA GRID (5 linhas x 7 colunas = 35 células) ---
+    // Gera os dias do calendário
     const renderCalendarDays = () => {
       const year = currentDate.getFullYear();
       const month = currentDate.getMonth();
 
       const firstDayOfMonth = new Date(year, month, 1);
-      const startDayIndex = firstDayOfMonth.getDay(); // 0 (Dom) .. 6 (Sáb)
+      const startDayIndex = firstDayOfMonth.getDay(); 
       const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-      const calendarCells: { date: Date; day: number; isCurrentMonth: boolean }[] = [];
+      const calendarCells: { dateStr: string; day: number; isCurrentMonth: boolean }[] = [];
 
-      // Preencher com dias do mês anterior que caem antes do dia 1
+      // Helper para formatar data YYYY-MM-DD localmente (evita problemas de fuso horário do toISOString)
+      const formatDateStr = (y: number, m: number, d: number) => {
+        const mm = String(m + 1).padStart(2, '0');
+        const dd = String(d).padStart(2, '0');
+        return `${y}-${mm}-${dd}`;
+      };
+
+      // Dias do mês anterior
       const prevMonthDays = new Date(year, month, 0).getDate();
       for (let i = startDayIndex; i > 0; i--) {
-        const d = new Date(year, month - 1, prevMonthDays - i + 1);
-        calendarCells.push({ date: d, day: d.getDate(), isCurrentMonth: false });
+        const dayNum = prevMonthDays - i + 1;
+        const dObj = new Date(year, month - 1, dayNum);
+        calendarCells.push({ 
+            dateStr: formatDateStr(dObj.getFullYear(), dObj.getMonth(), dObj.getDate()), 
+            day: dayNum, 
+            isCurrentMonth: false 
+        });
       }
 
       // Dias do mês atual
       for (let day = 1; day <= daysInMonth; day++) {
-        const d = new Date(year, month, day);
-        calendarCells.push({ date: d, day, isCurrentMonth: true });
+        calendarCells.push({ 
+            dateStr: formatDateStr(year, month, day), 
+            day, 
+            isCurrentMonth: true 
+        });
       }
 
-      // Decide se precisamos de 5 linhas (35 células) ou 6 linhas (42 células)
-      // totalNeeded = dias anteriores (startDayIndex) + dias do mês
+      // Preencher linhas restantes
       const totalNeeded = startDayIndex + daysInMonth;
-      const target = totalNeeded > 35 ? 42 : 35; // usar 6 linhas quando necessário
+      const target = totalNeeded > 35 ? 42 : 35;
 
-      if (calendarCells.length > target) {
-        // Se por alguma razão já temos mais, corta para o target calculado
-        calendarCells.splice(target);
-      }
-
-      // Se faltam células, preenche com dias do próximo mês
       if (calendarCells.length < target) {
         const toAdd = target - calendarCells.length;
         for (let i = 1; i <= toAdd; i++) {
-          const d = new Date(year, month + 1, i);
-          calendarCells.push({ date: d, day: d.getDate(), isCurrentMonth: false });
+           const dObj = new Date(year, month + 1, i);
+           calendarCells.push({ 
+               dateStr: formatDateStr(dObj.getFullYear(), dObj.getMonth(), dObj.getDate()), 
+               day: i, 
+               isCurrentMonth: false 
+           });
         }
       }
 
-      // Renderiza cada célula da grid
+      // Renderiza cada célula da grid cruzando com os dados do 'shifts'
       return calendarCells.map((cell, index) => {
-        const today = new Date();
-        const isToday = cell.date.toDateString() === today.toDateString();
-        const dailyScales = cell.isCurrentMonth
-          ? scalesData.filter(scale => scale.day === cell.day)
-          : [];
+        const todayStr = formatDateStr(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+        const isToday = cell.dateStr === todayStr;
+
+        // Filtra os turnos para este dia específico
+        const dailyShifts = shifts.filter(s => s.date === cell.dateStr);
 
         return (
           <div
@@ -81,9 +119,10 @@ const Scales: React.FC = () => {
           >
             <div className="day-number">{cell.day}</div>
             <div className="day-events">
-              {dailyScales.map((scale, i) => (
-                <div key={i} className={`event-block ${scale.color}`} title={scale.employee}>
-                  {scale.employee}
+              {dailyShifts.map((shift, i) => (
+                <div key={i} className="event-block yellow" title={shift.employee_name}>
+                  {/* Mostra apenas o primeiro nome ou nome completo conforme espaço */}
+                  {shift.employee_name}
                 </div>
               ))}
             </div>
@@ -91,43 +130,39 @@ const Scales: React.FC = () => {
         );
       });
     };
-    // Fim da lógica de geração dos dias
 
-  const monthYearStr = currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
   const monthStr = currentDate.toLocaleDateString('pt-BR', { month: 'long' });
   const yearStr = currentDate.getFullYear();
-
-  // Capitalize month (e.g., 'dezembro' -> 'Dezembro')
   const monthCap = monthStr.charAt(0).toUpperCase() + monthStr.slice(1);
 
   return (
-    <div className="scales-page-container"> {/* Mantive o nome da classe para reuso do CSS */}
-      {/* 1. HEADER DO CALENDÁRIO */}
+    <div className="scales-page-container">
       <div className="calendar-header-actions">
         <div className="calendar-nav">
           <button onClick={() => changeMonth(-1)} className="nav-button">❮</button>
-                    <h3 className="month-title"><span className="prefix-text">Escala Mensal -</span> <span className="month-text">{monthCap}</span> <span className="year-text">{yearStr}</span></h3>
+            <h3 className="month-title">
+                <span className="prefix-text">Escala Mensal -</span> 
+                <span className="month-text">{monthCap}</span> 
+                <span className="year-text">{yearStr}</span>
+            </h3>
           <button onClick={() => changeMonth(1)} className="nav-button">❯</button>
         </div>
-                {/* ... Botões de Ação ... */}
-                <div className="action-buttons">
-                    <button className="btn-action primary">BAIXAR</button>
-                    <button className="btn-action secondary">PUBLICAR</button>
-          <button className="btn-action edit">EDITAR</button>
-                </div>
-            </div>
-            
-            {/* 2. GRID DO CALENDÁRIO */}
-            <div className="calendar-grid-container">
-                <div className="weekdays-header">
-                    {weekDays.map(day => (<div key={day} className="weekday">{day}</div>))}
-                </div>
-                <div className="days-grid">
-                    {renderCalendarDays()}
-                </div>
-            </div>
+        <div className="action-buttons">
+            <button className="btn-action primary">BAIXAR</button>
+            <button className="btn-action secondary">PUBLICAR</button>
+            <button className="btn-action edit">EDITAR</button>
         </div>
-    );
+      </div>
+      <div className="calendar-grid-container">
+          <div className="weekdays-header">
+              {weekDays.map(day => (<div key={day} className="weekday">{day}</div>))}
+          </div>
+          <div className="days-grid">
+              {renderCalendarDays()}
+          </div>
+      </div>
+    </div>
+  );
 };
 
 export default Scales;

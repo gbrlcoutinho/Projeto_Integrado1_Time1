@@ -14,7 +14,7 @@ export const seedDB = (db) => {
 
     const employeeService = new EmployeeService(db);
 
-    const employeeId = employeeService.create({
+    const employee1Id = employeeService.create({
       name: "Valdomir Ferreira Santiago",
       function: "Operador da ETA",
       cellphone: "(88) 98864-2252",
@@ -22,8 +22,16 @@ export const seedDB = (db) => {
       restrictions: []
     });
 
+    const employee2Id = employeeService.create({
+      name: "José da Silva",
+      function: "Operador da ETA",
+      cellphone: "(85) 99999-1234",
+      availabilities: ["ETA"],
+      restrictions: []
+    });
+
     const scaleId = v4();
-    const mesTeste = "2023-11";
+    const mesTeste = "2025-11";
 
     const stmtScale = db.prepare(`
       INSERT INTO scales (id, month, type, status) 
@@ -37,12 +45,17 @@ export const seedDB = (db) => {
       VALUES (?, ?, ?, ?)
     `);
 
-    const dias = ["01", "05", "10"];
-    dias.forEach(dia => {
-      stmtShift.run(v4(), scaleId, employeeId, `${mesTeste}-${dia}`);
-    });
+    stmtShift.run(v4(), scaleId, employee1Id, `${mesTeste}-01`);
 
-    console.log(`Escala de teste criada para ${mesTeste} com 3 plantões.`);
+    stmtShift.run(v4(), scaleId, employee1Id, `${mesTeste}-05`);
+    stmtShift.run(v4(), scaleId, employee2Id, `${mesTeste}-05`);
+
+    stmtShift.run(v4(), scaleId, employee2Id, `${mesTeste}-10`);
+
+    console.log(`Escala de teste criada para ${mesTeste}.`);
+    console.log(" - Dia 01: 1 funcionário");
+    console.log(" - Dia 05: 2 funcionários");
+    console.log(" - Dia 10: 1 funcionário");
   } catch (error) {
     const message = error instanceof Error ? error.message : JSON.stringify(error);
     console.error(`Error on seeding database: ${message}`);
