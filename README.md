@@ -21,23 +21,42 @@ Nosso produto automatiza a criação e gestão, aplicando restrições que previ
 
 <img width="1351" height="652" alt="image" src="https://github.com/user-attachments/assets/c3807b1f-dd55-4e1f-8e0d-89a4acf6b723" />
 
-## 🚀 Funcionalidades Implementadas (Sprint 2)
+## 🚀 Funcionalidades Implementadas
 
-Com base no progresso da equipe, as seguintes funcionalidades foram desenvolvidas ou estão em andamento:
+### Sprint 4 - Geração de Escala e Calendário
+
+* **Geração Automática de Escala:**
+    * Algoritmo de geração de escala que respeita restrições de funcionários (carga horária, disponibilidade, feriados).
+    * Método para geração de escala recebendo mês, ano, funcionários selecionados e lista de feriados.
+    * Método para leitura de escala existente com funcionários alocados por turno/dia.
+    * Sistema de seleção de funcionários elegíveis para cada tipo de escala (ETA e Plantão da Tarde).
+
+* **Interface de Calendário:**
+    * Tela de visualização de escalas em formato de calendário mensal.
+    * Navegação entre meses (anterior/próximo).
+    * Visualização de funcionários alocados por dia.
+    * Modal interativo de criação de escala em dois passos:
+        * **Passo 1:** Seleção de funcionários elegíveis com filtro por tipo de plantão (ETA/Tarde) usando toggle switches.
+        * **Passo 2:** Seleção de feriados através de calendário interativo.
+    * Integração completa entre frontend e backend para geração e visualização de escalas.
+
+### Sprints Anteriores
 
 * **Autenticação:**
     * Implementação completa do back-end da tela de login.
     * Desenvolvimento e integração do front-end da tela de login.
-* **Gerenciamento de Funcionários:**
-    * Implementação do back-end para a listagem de funcionários.
+
+* **Gerenciamento de Funcionários (CRUD Completo):**
+    * Implementação do back-end para listagem, criação, edição e exclusão de funcionários.
     * Desenvolvimento do front-end da tela de listagem, incluindo componentização em React e estilização CSS.
-    * Lógica de busca e filtro de funcionários implementada no front-end.
+    * Modal completo para cadastro, edição e visualização de funcionários.
+    * Lógica de busca e filtro de funcionários.
+    * Sistema de restrições (finais de semana, feriados) e disponibilidade (ETA, Plantão da Tarde).
+
 * **Infraestrutura e Banco de Dados:**
     * Configuração de um banco de dados SQLite acoplado para simplificar a integração.
-    * Configuração de migrações de banco de dados para garantir um ambiente homogêneo para os desenvolvedores.
-* **Design e Modelagem (Em Andamento):**
-    * Prototipação das telas de CRUD de funcionários.
-    * Modelagem do banco de dados (Diagrama ER) e Diagrama de Classes, com alinhamento sobre as regras de restrição.
+    * Sistema de migrações de banco de dados para garantir ambiente homogêneo.
+    * Tabelas para funcionários, disponibilidades, restrições, escalas e turnos.
 
 ## 🛠️ Tecnologias Utilizadas
 
