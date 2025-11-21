@@ -4,22 +4,14 @@ import { getScale } from '../ipc-bridge/scale';
 import CreateScaleModal from './createScaleModal/CreateScaleModal';
 
 const Scales: React.FC = () => {
-  // Estado da data atual do calendário
   const [currentDate, setCurrentDate] = useState(new Date());
-
-  // Estado para armazenar os turnos vindos do banco
   const [shifts, setShifts] = useState<any[]>([]);
 
-  // Estado para o tipo de escala
-  const [scaleType, setScaleType] = useState<'ETA' | 'PLANTAO_TARDE'>('ETA');
-
-  // Estado para controlar o modal de criar escala
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  // Nomes dos dias da semana
   const weekDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
-  // Busca os dados sempre que o Mês ou o Tipo de escala mudar
+  // Busca os dados sempre que o Mês mudar
   useEffect(() => {
     const fetchScale = async () => {
       try {
@@ -28,16 +20,33 @@ const Scales: React.FC = () => {
         const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // +1 porque Jan é 0
         const monthString = `${year}-${month}`;
 
-        // Chama o Electron
-        const result = await getScale({ month: monthString, type: scaleType });
+        // Busca ambas as escalas (ETA e PLANTAO_TARDE)
+        const [etaResult, plantaoResult] = await Promise.all([
+          getScale({ month: monthString, type: 'ETA' }),
+          getScale({ month: monthString, type: 'PLANTAO_TARDE' })
+        ]);
 
-        if (result && result.shifts) {
-          // Se achou escala, guarda os turnos
-          setShifts(result.shifts);
-        } else {
-          // Se não achou, limpa os turnos
-          setShifts([]);
+        const allShifts = [];
+
+        // Adiciona turnos da ETA com identificação
+        if (etaResult && etaResult.shifts) {
+          const etaShifts = etaResult.shifts.map((shift: any) => ({
+            ...shift,
+            scaleType: 'ETA'
+          }));
+          allShifts.push(...etaShifts);
         }
+
+        // Adiciona turnos do PLANTAO_TARDE com identificação  
+        if (plantaoResult && plantaoResult.shifts) {
+          const plantaoShifts = plantaoResult.shifts.map((shift: any) => ({
+            ...shift,
+            scaleType: 'PLANTAO_TARDE'
+          }));
+          allShifts.push(...plantaoShifts);
+        }
+
+        setShifts(allShifts);
       } catch (error) {
         console.error("Erro ao buscar escala:", error);
         setShifts([]);
@@ -45,30 +54,40 @@ const Scales: React.FC = () => {
     };
 
     fetchScale();
-  }, [currentDate, scaleType]); // Roda se mudar a data ou o tipo
+  }, [currentDate]); // Roda se mudar a data
 
-  // Muda o mês
   const changeMonth = (delta: number) => {
     const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + delta, 1);
     setCurrentDate(newDate);
   };
 
-  // Função para lidar com a criação de escala
-  const handleCreateScale = async (payload: any) => {
+  const handleCreateScale = async (result: any) => {
     try {
-      console.log('Criando escala com os dados:', payload);
-      // Aqui você vai chamar a API do backend via IPC
-      // await window.api.scale.createScale(payload);
+      if (result.success && result.data) {
+        const allShifts = [];
 
-      // Após criar, recarrega a escala
-      const year = currentDate.getFullYear();
-      const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-      const monthString = `${year}-${month}`;
-      const result = await getScale({ month: monthString, type: scaleType });
+        // Adiciona turnos da ETA com identificação
+        if (result.data.ETA && result.data.ETA.shifts) {
+          const etaShifts = result.data.ETA.shifts.map((shift: any) => ({
+            ...shift,
+            scaleType: 'ETA'
+          }));
+          allShifts.push(...etaShifts);
+        }
 
-      if (result && result.shifts) {
-        setShifts(result.shifts);
+        // Adiciona turnos do PLANTAO_TARDE com identificação
+        if (result.data.PLANTAO_TARDE && result.data.PLANTAO_TARDE.shifts) {
+          const plantaoShifts = result.data.PLANTAO_TARDE.shifts.map((shift: any) => ({
+            ...shift,
+            scaleType: 'PLANTAO_TARDE'
+          }));
+          allShifts.push(...plantaoShifts);
+        }
+
+        setShifts(allShifts);
+        console.log(`Displaying ${allShifts.length} total shifts from both scales`);
       }
+
     } catch (error) {
       console.error('Erro ao criar escala:', error);
       alert('Erro ao criar escala. Tente novamente.');
@@ -145,12 +164,26 @@ const Scales: React.FC = () => {
         >
           <div className="day-number">{cell.day}</div>
           <div className="day-events">
-            {dailyShifts.map((shift, i) => (
-              <div key={i} className="event-block yellow" title={shift.employee_name}>
-                {/* Mostra apenas o primeiro nome ou nome completo conforme espaço */}
-                {shift.employee_name}
-              </div>
-            ))}
+            {dailyShifts.map((shift, i) => {
+              // Determine background color based on scale type
+              const backgroundColor = shift.scaleType === 'ETA' ? '#FFE599' : '#6FA8DC';
+              const textColor = shift.scaleType === 'ETA' ? '#000' : '#fff';
+
+              return (
+                <div
+                  key={i}
+                  className="event-block"
+                  style={{
+                    backgroundColor: backgroundColor,
+                    color: textColor
+                  }}
+                  title={`${shift.employee_name} - ${shift.scaleType}`}
+                >
+                  {/* Mostra apenas o primeiro nome ou nome completo conforme espaço */}
+                  {shift.employee_name}
+                </div>
+              );
+            })}
           </div>
         </div>
       );

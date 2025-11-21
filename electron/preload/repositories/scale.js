@@ -39,4 +39,52 @@ export class ScaleRepository {
     }
   }
 
+  create(scale) {
+    try {
+      const stmt = this.db.prepare(`
+        INSERT INTO scales (id, month, type, status)
+        VALUES (?, ?, ?, ?)
+      `);
+
+      return stmt.run(scale.id, scale.month, scale.type, scale.status);
+    } catch (error) {
+      console.error("Erro ao criar escala:", error);
+      throw new Error("Falha ao criar escala no banco de dados.");
+    }
+  }
+
+  createShift(shift) {
+    try {
+      const stmt = this.db.prepare(`
+        INSERT INTO scale_shifts (id, scale_id, employee_id, date)
+        VALUES (?, ?, ?, ?)
+      `);
+
+      return stmt.run(shift.id, shift.scale_id, shift.employee_id, shift.date);
+    } catch (error) {
+      console.error("Erro ao criar turno:", error);
+      throw new Error("Falha ao criar turno no banco de dados.");
+    }
+  }
+
+  createMultipleShifts(shifts) {
+    try {
+      const stmt = this.db.prepare(`
+        INSERT INTO scale_shifts (id, scale_id, employee_id, date)
+        VALUES (?, ?, ?, ?)
+      `);
+
+      const transaction = this.db.transaction((shifts) => {
+        for (const shift of shifts) {
+          stmt.run(shift.id, shift.scale_id, shift.employee_id, shift.date);
+        }
+      });
+
+      return transaction(shifts);
+    } catch (error) {
+      console.error("Erro ao criar múltiplos turnos:", error);
+      throw new Error("Falha ao criar turnos no banco de dados.");
+    }
+  }
+
 }

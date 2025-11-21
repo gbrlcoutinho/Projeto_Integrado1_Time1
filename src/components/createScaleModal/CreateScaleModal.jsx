@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import './CreateScaleModal.css';
 import { findEligibleEmployees } from '../../ipc-bridge/employee';
+import { createScale } from '../../ipc-bridge/scale';
+import './CreateScaleModal.css';
 
 function CreateScaleModal({ isOpen, onClose, onSubmit, month, year }) {
     const [step, setStep] = useState(1);
@@ -28,6 +29,22 @@ function CreateScaleModal({ isOpen, onClose, onSubmit, month, year }) {
             const employees = await findEligibleEmployees();
             if (Array.isArray(employees)) {
                 setEmployees(employees);
+
+                // Auto-select all eligible employees for each scale type
+                const etaEmployees = employees.filter(emp => {
+                    if (!emp.availabilities) return false;
+                    const availabilities = emp.availabilities.split(',');
+                    return availabilities.includes('ETA');
+                });
+
+                const plantaoEmployees = employees.filter(emp => {
+                    if (!emp.availabilities) return false;
+                    const availabilities = emp.availabilities.split(',');
+                    return availabilities.includes('PLANTAO_TARDE');
+                });
+
+                setSelectedEmployeesETA(etaEmployees);
+                setSelectedEmployeesPlantao(plantaoEmployees);
             } else {
                 setEmployees([]);
             }
@@ -79,19 +96,34 @@ function CreateScaleModal({ isOpen, onClose, onSubmit, month, year }) {
         }
     };
 
-    const handleFinish = () => {
-        const payload = {
-            month,
-            year,
-            type: selectedType,
-            employeeIds: {
-                ETA: selectedEmployeesETA,
-                PLANTAO_TARDE: selectedEmployeesPlantao
-            },
-            holidays: selectedHolidays
-        };
-        onSubmit(payload);
-        onClose();
+    const handleFinish = async () => {
+        try {
+            const payload = {
+                month,
+                year,
+                employeeIds: {
+                    ETA: selectedEmployeesETA,
+                    PLANTAO_TARDE: selectedEmployeesPlantao
+                },
+                holidays: selectedHolidays
+            };
+
+            console.log('Sending payload to backend:', payload);
+
+            const result = await createScale(payload);
+
+            if (result.error) {
+                alert(`Erro ao criar escala: ${result.error}`);
+                return;
+            }
+
+            console.log('Scale creation result:', result);
+            onSubmit(result);
+            onClose();
+        } catch (error) {
+            console.error('Error creating scale:', error);
+            alert(`Erro ao criar escala: ${error.message}`);
+        }
     };
 
     const renderCalendar = () => {
@@ -159,8 +191,6 @@ function CreateScaleModal({ isOpen, onClose, onSubmit, month, year }) {
     });
 
     if (!isOpen) return null;
-
-    // console.log("employees", employees);
 
     return (
         <div className="modal-overlay" onClick={onClose}>

@@ -151,6 +151,7 @@
 
 /* Configuração da Grid para 7 colunas (Dias da semana) */
 .weekdays-header {
+    margin-top: 20px;
     display: flex;
     width: 100%;
     gap: 0;

@@ -53,3 +53,11 @@ ipcMain.handle('get-scale', async (_, params) => {
     return { error: err?.message ?? String(err) };
   }
 });
+
+ipcMain.handle('create-scale', async (_, params) => {
+  try {
+    return await scaleService.createScale(params);
+  } catch (err) {
+    return { error: err?.message ?? String(err) };
+  }
+});

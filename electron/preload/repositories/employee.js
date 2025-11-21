@@ -59,6 +59,42 @@ export class EmployeeRepository {
     }
   }
 
+  findByIds(employeeIds) {
+    try {
+      if (!employeeIds || employeeIds.length === 0) {
+        return [];
+      }
+
+      const placeholders = employeeIds.map(() => '?').join(',');
+
+      const employees = this.db.prepare(`
+        SELECT
+          e.id,
+          e.name,
+          e."function",
+          e.cellphone,
+          (
+            SELECT GROUP_CONCAT(r.type)
+            FROM employee_restrictions r
+            WHERE r.employee_id = e.id
+          ) AS restrictions,
+          (
+            SELECT GROUP_CONCAT(a.type)
+            FROM employee_availabilities a
+            WHERE a.employee_id = e.id
+          ) AS availabilities
+        FROM employees e
+        WHERE e.id IN (${placeholders}) AND e.deleted = 0
+        ORDER BY e.name
+      `).all(...employeeIds);
+
+      return employees;
+    } catch (error) {
+      console.error("Erro ao buscar funcionários por IDs:", error);
+      return [];
+    }
+  }
+
   findEligible(availabilityType = null) {
     try {
       let selectClause = `
@@ -101,9 +137,9 @@ export class EmployeeRepository {
       `);
 
       const employees = stmt.all(...params);
-      
+
       return employees;
-      
+
     } catch (error) {
       console.error("Erro ao buscar funcionários elegíveis:", error);
       throw new Error(`Falha no repositório buscar elegíveis: ${error.message}`);

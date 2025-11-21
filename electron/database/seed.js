@@ -14,48 +14,111 @@ export const seedDB = (db) => {
 
     const employeeService = new EmployeeService(db);
 
-    const employee1Id = employeeService.create({
-      name: "Valdomir Ferreira Santiago",
+    // ETA employees with various restrictions
+    employeeService.create({
+      name: "João Silva",
       function: "Operador da ETA",
-      cellphone: "(88) 98864-2252",
+      cellphone: "(85) 98888-1111",
       availabilities: ["ETA"],
-      restrictions: []
+      restrictions: [] // No restrictions
     });
 
-    const employee2Id = employeeService.create({
-      name: "José da Silva",
+    employeeService.create({
+      name: "Maria Santos",
       function: "Operador da ETA",
-      cellphone: "(85) 99999-1234",
+      cellphone: "(85) 98888-2222",
       availabilities: ["ETA"],
-      restrictions: []
+      restrictions: ["WEEKENDS"] // Cannot work weekends
     });
 
-    const scaleId = v4();
-    const mesTeste = "2025-11";
+    employeeService.create({
+      name: "Pedro Oliveira",
+      function: "Operador da ETA",
+      cellphone: "(85) 98888-3333",
+      availabilities: ["ETA"],
+      restrictions: ["HOLYDAYS"] // Cannot work holidays
+    });
 
-    const stmtScale = db.prepare(`
-      INSERT INTO scales (id, month, type, status) 
-      VALUES (?, ?, ?, ?)
-    `);
+    employeeService.create({
+      name: "Ana Costa",
+      function: "Operador da ETA",
+      cellphone: "(85) 98888-4444",
+      availabilities: ["ETA"],
+      restrictions: ["WEEKENDS", "HOLYDAYS"] // Cannot work weekends or holidays
+    });
 
-    stmtScale.run(scaleId, mesTeste, "ETA", "RASCUNHO");
+    // PLANTAO_TARDE employees with various restrictions  
+    employeeService.create({
+      name: "Carlos Ferreira",
+      function: "Encanador",
+      cellphone: "(85) 99999-1111",
+      availabilities: ["PLANTAO_TARDE"],
+      restrictions: [] // No restrictions
+    });
 
-    const stmtShift = db.prepare(`
-      INSERT INTO scale_shifts (id, scale_id, employee_id, date) 
-      VALUES (?, ?, ?, ?)
-    `);
+    employeeService.create({
+      name: "Lucia Rocha",
+      function: "Encanador",
+      cellphone: "(85) 99999-2222",
+      availabilities: ["PLANTAO_TARDE"],
+      restrictions: ["WEEKENDS"] // Cannot work weekends
+    });
 
-    stmtShift.run(v4(), scaleId, employee1Id, `${mesTeste}-01`);
+    employeeService.create({
+      name: "Roberto Lima",
+      function: "Encanador",
+      cellphone: "(85) 99999-3333",
+      availabilities: ["PLANTAO_TARDE"],
+      restrictions: ["HOLYDAYS"] // Cannot work holidays
+    });
 
-    stmtShift.run(v4(), scaleId, employee1Id, `${mesTeste}-05`);
-    stmtShift.run(v4(), scaleId, employee2Id, `${mesTeste}-05`);
+    employeeService.create({
+      name: "Fernanda Souza",
+      function: "Encanador",
+      cellphone: "(85) 99999-4444",
+      availabilities: ["PLANTAO_TARDE"],
+      restrictions: ["WEEKENDS", "HOLYDAYS"] // Cannot work weekends or holidays
+    });
 
-    stmtShift.run(v4(), scaleId, employee2Id, `${mesTeste}-10`);
+    // Multi-availability employees (can work both scales)
+    employeeService.create({
+      name: "Ricardo Alves",
+      function: "Operador da ETA",
+      cellphone: "(85) 97777-1111",
+      availabilities: ["ETA", "PLANTAO_TARDE"],
+      restrictions: [] // No restrictions, very flexible
+    });
 
-    console.log(`Escala de teste criada para ${mesTeste}.`);
-    console.log(" - Dia 01: 1 funcionário");
-    console.log(" - Dia 05: 2 funcionários");
-    console.log(" - Dia 10: 1 funcionário");
+    employeeService.create({
+      name: "Juliana Mendes",
+      function: "Encanador",
+      cellphone: "(85) 97777-2222",
+      availabilities: ["ETA", "PLANTAO_TARDE"],
+      restrictions: ["WEEKENDS"] // Multi-scale but no weekends
+    });
+
+    employeeService.create({
+      name: "Marcos Pereira",
+      function: "Operador da ETA",
+      cellphone: "(85) 97777-3333",
+      availabilities: ["ETA", "PLANTAO_TARDE"],
+      restrictions: ["HOLYDAYS"] // Multi-scale but no holidays
+    });
+
+    employeeService.create({
+      name: "Sandra Barbosa",
+      function: "Encanador",
+      cellphone: "(85) 97777-4444",
+      availabilities: ["ETA", "PLANTAO_TARDE"],
+      restrictions: ["WEEKENDS", "HOLYDAYS"] // Multi-scale but restricted
+    });
+
+    console.log("Database seeded with 12 test employees:");
+    console.log("- 4 ETA-only employees with various restrictions");
+    console.log("- 4 PLANTAO_TARDE-only employees with various restrictions");
+    console.log("- 4 Multi-scale employees with various restrictions");
+    console.log("Ready for scale generation testing!");
+
   } catch (error) {
     const message = error instanceof Error ? error.message : JSON.stringify(error);
     console.error(`Error on seeding database: ${message}`);
