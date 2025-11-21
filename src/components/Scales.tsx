@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import './Scales.css'; 
+import './Scales.css';
 import { getScale } from '../ipc-bridge/scale';
+import CreateScaleModal from './createScaleModal/CreateScaleModal';
 
 const Scales: React.FC = () => {
     // Estado da data atual do calendário
     const [currentDate, setCurrentDate] = useState(new Date());
-    
+
     // Estado para armazenar os turnos vindos do banco
     const [shifts, setShifts] = useState<any[]>([]);
-    
+
     // Estado para o tipo de escala
     const [scaleType, setScaleType] = useState<'ETA' | 'PLANTAO_TARDE'>('ETA');
+
+    // Estado para controlar o modal de criar escala
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
     // Nomes dos dias da semana
     const weekDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
@@ -47,6 +51,28 @@ const Scales: React.FC = () => {
     const changeMonth = (delta: number) => {
       const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + delta, 1);
       setCurrentDate(newDate);
+    };
+
+    // Função para lidar com a criação de escala
+    const handleCreateScale = async (payload: any) => {
+      try {
+        console.log('Criando escala com os dados:', payload);
+        // Aqui você vai chamar a API do backend via IPC
+        // await window.api.scale.createScale(payload);
+
+        // Após criar, recarrega a escala
+        const year = currentDate.getFullYear();
+        const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+        const monthString = `${year}-${month}`;
+        const result = await getScale({ month: monthString, type: scaleType });
+
+        if (result && result.shifts) {
+          setShifts(result.shifts);
+        }
+      } catch (error) {
+        console.error('Erro ao criar escala:', error);
+        alert('Erro ao criar escala. Tente novamente.');
+      }
     };
 
     // Gera os dias do calendário
@@ -141,13 +167,16 @@ const Scales: React.FC = () => {
         <div className="calendar-nav">
           <button onClick={() => changeMonth(-1)} className="nav-button">❮</button>
             <h3 className="month-title">
-                <span className="prefix-text">Escala Mensal -</span> 
-                <span className="month-text">{monthCap}</span> 
+                <span className="prefix-text">Escala Mensal -</span>
+                <span className="month-text">{monthCap}</span>
                 <span className="year-text">{yearStr}</span>
             </h3>
           <button onClick={() => changeMonth(1)} className="nav-button">❯</button>
         </div>
         <div className="action-buttons">
+            <button className="btn-action primary" onClick={() => setIsCreateModalOpen(true)}>
+              CRIAR ESCALA
+            </button>
             <button className="btn-action primary">BAIXAR</button>
             <button className="btn-action secondary">PUBLICAR</button>
             <button className="btn-action edit">EDITAR</button>
@@ -161,6 +190,14 @@ const Scales: React.FC = () => {
               {renderCalendarDays()}
           </div>
       </div>
+
+      <CreateScaleModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSubmit={handleCreateScale}
+        month={currentDate.getMonth() + 1}
+        year={currentDate.getFullYear()}
+      />
     </div>
   );
 };
