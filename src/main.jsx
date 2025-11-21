@@ -10,27 +10,33 @@ import './demos/ipc'
 import LoginPage from './pages/LoginPage'
 
 function Root() {
-  const [route, setRoute] = React.useState(window.location.hash || '#/')
+  // use the current hash if present, otherwise default to login
+  const [route, setRoute] = React.useState(window.location.hash || '#/login')
 
   React.useEffect(() => {
-    const onHash = () => setRoute(window.location.hash || '#/')
+    const onHash = () => setRoute(window.location.hash || '#/login')
     window.addEventListener('hashchange', onHash)
     return () => window.removeEventListener('hashchange', onHash)
   }, [])
 
-  // rotas mínimas: '#/dashboard' -> App, qualquer outra -> LoginPage
-  if (route === '#/dashboard' || route === '#dashboard') {
+  // rotas mínimas:
+  // - '#/login' -> LoginPage
+  // - qualquer hash que comece com '#/' (ex: '#/dashboard', '#/escalas', '#/funcionarios') -> App (dashboard)
+  if (route === '#/login') {
+    return <LoginPage />
+  }
+
+  if (route.startsWith('#/')) {
     return <App />
   }
 
+  // fallback
   return <LoginPage />
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <DashboardLayout>
-      <EmployeesTable />
-    </DashboardLayout>
+    <Root />
   </React.StrictMode>,
 )
 

@@ -43,12 +43,32 @@
 
 .funcionarios-container {
   background-color: #ffffff;
+<<<<<<< HEAD
   padding: 5px 15px;
   font-family: 'Poppins', sans-serif;
   color: var(--cor-texto-corpo);
   border-radius: 0;
   border: none;
   box-shadow: none;
+=======
+  padding: 32px;
+  font-family: 'Poppins', sans-serif;
+  color: var(--cor-texto-corpo);
+  border-radius: 8px;
+  /* Adiciona bordas arredondadas */
+  border: 1px solid #e9ecef;
+  /* Adiciona uma borda sutil */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  /* Sombra muito leve */
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 8px;
+  /* Adiciona bordas arredondadas */
+  border: 1px solid #e9ecef;
+  /* Adiciona uma borda sutil */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  /* Sombra muito leve */
+>>>>>>> 1f85906503133fe29694745465427232e36bd076
   width: 100%;
   box-sizing: border-box;
 }
@@ -61,7 +81,10 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 40px;
+<<<<<<< HEAD
   /* Aumentado de 24px para 40px */
+=======
+>>>>>>> 1f85906503133fe29694745465427232e36bd076
 }
 
 .page-header h1 {
@@ -70,6 +93,13 @@
   /* Pode ajustar o tamanho se desejar */
   font-weight: 700;
   /* Deixa a fonte mais forte */
+<<<<<<< HEAD
+=======
+  font-size: 32px;
+  /* Pode ajustar o tamanho se desejar */
+  font-weight: 700;
+  /* Deixa a fonte mais forte */
+>>>>>>> 1f85906503133fe29694745465427232e36bd076
   color: #1D2B33;
 }
 
@@ -85,19 +115,51 @@
 
 /* Container de pesquisa */
 .search-container {
+<<<<<<< HEAD
   margin-bottom: 40px;
   box-sizing: border-box;
   position: relative;
+=======
+  position: relative;
+}
+
+.search-container label {
+  z-index: 50;
+  position: absolute;
+  top: -0.65rem;
+  left: 0.75rem;
+  font-size: 0.8rem;
+  color: #1D2B33;
+  background-color: #ffffff;
+  padding: 0 0.4rem;
+  pointer-events: none;
+  transition: all 0.2s ease;
+>>>>>>> 1f85906503133fe29694745465427232e36bd076
 }
 
 .search-input-wrapper {
   position: relative;
   box-sizing: border-box;
   width: 100%;
+  border: 1px solid #1D2B3380;
+  border-radius: 8px;
 }
 
+<<<<<<< HEAD
 /* src/components/EmployeesTable.css */
 .search-input {
+=======
+.search-input {
+  height: 56px;
+  border: 1px solid #E9ECEF;
+  /* Borda completa */
+  border-radius: 8px;
+  /* Bordas arredondadas */
+  padding: 0 40px 0 16px;
+  /* Padding ajustado */
+  font-size: 14px;
+  color: #1D2B33;
+>>>>>>> 1f85906503133fe29694745465427232e36bd076
   width: 100%;
   height: 56px;
   /* <-- vindo do modal */
@@ -112,6 +174,7 @@
   background-color: #fff;
   color: #1D2B33;
   box-sizing: border-box;
+<<<<<<< HEAD
 }
 
 .search-input {
@@ -137,6 +200,14 @@
   outline: none;
   border-bottom-color: #3A5566;
   /* Cor de foco do Figma */
+=======
+  background-color: #FFFFFF;
+  outline: none;
+}
+
+.search-input-wrapper:has(.search-input:focus) {
+  border: 1px solid #1D2B33;
+>>>>>>> 1f85906503133fe29694745465427232e36bd076
 }
 
 .search-icon {
@@ -146,6 +217,16 @@
   top: 50%;
   transform: translateY(-50%);
   pointer-events: none;
+<<<<<<< HEAD
+=======
+  /* para que o ícone não interfira com o clique no input */
+  display: flex;
+  align-items: center;
+  color: var(--cor-texto-label);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--cor-texto-label);
+>>>>>>> 1f85906503133fe29694745465427232e36bd076
   display: flex;
   align-items: center;
   color: #1D2B33;
@@ -185,6 +266,7 @@
   border-color: var(--cor-primaria-escura);
 }
 
+<<<<<<< HEAD
 /* --- NOVOS ESTILOS (COPIADOS DO MODAL) --- */
 
 /* Estilo da label flutuante (estado inicial) */
@@ -213,6 +295,8 @@
   font-weight: 500;
 }
 
+=======
+>>>>>>> 1f85906503133fe29694745465427232e36bd076
 /* --- NOVOS ESTILOS PARA BOTÕES DE AÇÃO --- */
 
 .btn-view,
@@ -251,6 +335,8 @@
 
 /* src/components/EmployeesTable.css */
 
+/* src/components/EmployeesTable.css */
+
 .tabela-container {
   width: 100%;
   border: none;
@@ -279,6 +365,17 @@ td {
   vertical-align: middle;
   border-bottom: none;
   /* Remove a borda daqui */
+<<<<<<< HEAD
+=======
+  border-bottom: none;
+  /* Remove a borda daqui */
+}
+
+/* Estilo para a nova coluna "Ações" */
+td[data-label="Ações"] {
+  display: flex;
+  gap: 0.5rem;
+>>>>>>> 1f85906503133fe29694745465427232e36bd076
 }
 
 /* Estilo para a nova coluna "Ações" */
@@ -291,6 +388,10 @@ td[data-label="Ações"] {
 .tabela-container table th,
 .tabela-container table td {
   text-align: left !important;
+}
+
+tbody tr {
+  border-bottom: 1px solid #e9ecef;
 }
 
 tbody tr {
@@ -335,15 +436,15 @@ td {
   display: inline-block;
 }
 
-.tag-restricao {
+/* .tag-restricao {
   background-color: var(--cor-tag-restricao-fundo);
   color: var(--cor-tag-restricao-texto);
-}
+} */
 
-.tag-disponibilidade {
+/* .tag-disponibilidade {
   background-color: var(--cor-tag-disponibilidade-fundo);
   color: var(--cor-tag-disponibilidade-texto);
-}
+} */
 
 /* ==========================================================================
    7. FOOTER (PAGINAÇÃO)
@@ -357,6 +458,12 @@ td {
   padding-top: 24px;
   font-size: 14px;
   color: #1D2B33;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 /* src/components/EmployeesTable.css */
@@ -404,7 +511,10 @@ td {
     content: attr(data-label);
     /* Pega o texto do atributo data-label */
     position: absolute;
+<<<<<<< HEAD
     margin-right: 8px;
+=======
+>>>>>>> 1f85906503133fe29694745465427232e36bd076
     left: 16px;
     font-weight: 600;
     color: #333;

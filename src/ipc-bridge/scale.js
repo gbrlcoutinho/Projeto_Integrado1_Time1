@@ -1,0 +1,8 @@
+/**
+ * Busca a escala completa (com turnos) do backend.
+ * @param {Object} params - { month: 'YYYY-MM', type: 'ETA' | 'PLANTAO_TARDE' }
+ */
+export const getScale = async (params) => {
+  // Error throw should be handled on frontend function call.
+  return await window.ipcRenderer.invoke('get-scale', params);
+};

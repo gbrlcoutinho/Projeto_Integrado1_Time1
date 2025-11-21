@@ -6,6 +6,7 @@
   flex-shrink: 0;
   display: flex;
   justify-content: space-between;
+  /* <-- MUDANÇA CRÍTICA: Alinha os itens nas pontas */
   align-items: center;
   /* ALTERAÇÃO 1: Aumentado o padding horizontal para alinhar com o conteúdo */
   padding: 22px 30px;
@@ -29,7 +30,9 @@
   height: 40px;
   border-radius: 50%;
   background-color: #FFFFFF;
+  /* MUDANÇA: Fundo do avatar branco */
   color: #2A3E4B;
+  /* MUDANÇA: Ícone do avatar escuro */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -44,10 +47,12 @@
 .user-name {
   font-weight: 600;
   color: #FFFFFF;
+  /* MUDANÇA: Texto branco */
   font-size: 14px;
 }
 
 .user-email {
   font-size: 12px;
   color: #adb5bd;
+  /* MUDANÇA: Cinza claro para o email */
 }

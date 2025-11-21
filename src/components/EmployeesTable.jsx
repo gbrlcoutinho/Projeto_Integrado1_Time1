@@ -1,26 +1,18 @@
-// src/components/EmployeesTable.jsx
-
-import React, { useState, useEffect, useRef } from 'react';
-import { getAllEmployees } from '../employeeService.js'; // Mantemos, mas não usamos
-import './EmployeesTable.css';
+import { useState, useEffect, useRef } from 'react';
+import { getAllEmployees, deleteEmployee, createEmployee, updateEmployee } from '../ipc-bridge/employee.js';
 import SearchIcon from './SearchIcon';
-
-// --- INÍCIO DAS MUDANÇAS ---
-import FuncionarioModal from './FuncionarioModal/FuncionarioModal.jsx'; // Nome do modal corrigido
-import { mockEmployees } from '../mockData.js'; // Importamos os mocks
-// import { use } from 'react'; // 'use' não estava sendo usado, removido
-// --- FIM DAS MUDANÇAS ---
+import FuncionarioModal from './funcionarioModal/FuncionarioModal.jsx';
+import './EmployeesTable.css';
 
 // DADOS MOCKADOS (bloco antigo removido)
 const ITEMS_PER_PAGE = 10;
 
 function EmployeesTable() {
-  // --- ESTADOS ---
   const [allEmployees, setAllEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Novos estados para a funcionalidade da UI
+  // Estados para a funcionalidade da pesquisa
   const [searchTerm, setSearchTerm] = useState('');
 
   // --- INÍCIO DAS MUDANÇAS: Estados do Modal ---
@@ -31,8 +23,14 @@ function EmployeesTable() {
 
   const [searchText, setSearchText] = useState('');
   const searchInputRef = useRef(null);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState('create');
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
   const firstRowIndex = (currentPage - 1) * ITEMS_PER_PAGE + 1;
@@ -42,45 +40,33 @@ function EmployeesTable() {
     setSearchText(e.target.value);
   }
 
-  // --- INÍCIO DAS MUDANÇAS: useEffect usando MOCKS ---
+  const fetchEmployees = async () => {
+    try {
+      if (loading) return;
+      setLoading(true);
+      setError(null);
+
+      const response = await getAllEmployees({
+        page: currentPage,
+        limit: ITEMS_PER_PAGE,
+        searchTerm: searchTerm
+      });
+
+      setAllEmployees(response.employees);
+      setTotalCount(response.totalCount);
+    } catch (err) {
+      console.error("Erro ao simular dados dos funcionários:", err);
+      setError(err.message || "Erro desconhecido");
+      setAllEmployees([]);
+      setTotalCount(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchEmployees = () => {
-      try {
-        if (loading) return;
-        setLoading(true);
-        setError(null);
-
-        // 1. Simula a busca (filtra os mocks)
-        const filteredEmployees = mockEmployees.filter(emp =>
-          emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          emp.function.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-
-        // 2. Simula a paginação
-        const total = filteredEmployees.length;
-        const start = (currentPage - 1) * ITEMS_PER_PAGE;
-        const end = start + ITEMS_PER_PAGE;
-        const paginatedEmployees = filteredEmployees.slice(start, end);
-
-        // 3. Simula a resposta da API (com um delay falso)
-        setTimeout(() => {
-          setAllEmployees(paginatedEmployees);
-          setTotalCount(total);
-          setLoading(false);
-        }, 300); // 300ms de "loading"
-
-      } catch (err) {
-        console.error("Erro ao simular dados dos funcionários:", err);
-        setError(err.message || "Erro desconhecido");
-        setAllEmployees([]);
-        setTotalCount(0);
-        setLoading(false);
-      }
-    };
-
     fetchEmployees();
-  }, [currentPage, searchTerm]);
-  // --- FIM DAS MUDANÇAS: useEffect ---
+  }, [currentPage, searchTerm, refreshKey]);
 
 
   // Estes useEffects vieram da 'main' e são necessários para a busca funcionar
@@ -129,25 +115,45 @@ function EmployeesTable() {
     setIsModalOpen(true);
   };
 
-  // Não precisamos do openEditModal aqui, pois ele é chamado de dentro do 'view'
-
   const closeModal = () => {
     setIsModalOpen(false);
   };
-  // --- FIM DAS MUDANÇAS ---
-
-  // (A função renderTags foi removida pois não estava sendo usada)
-
-  // --- RENDERIZAÇÃO DE ESTADOS DE CARREGAMENTO E ERRO ---
-  if (loading) {
-    // (Vamos mostrar a tabela mesmo durante o loading, fica mais suave)
-  }
 
   if (error) {
     return <p style={{ color: 'red' }}> Ocorreu um erro: {error}</p>;
   }
 
-  // --- RENDERIZAÇÃO PRINCIPAL ---
+  const handleCreate = async (payload) => {
+    try {
+      await createEmployee(payload);
+      fetchEmployees();
+    } catch (error) {
+      setError(error.message || "Erro desconhecido");
+    }
+  }
+
+  const handleUpdate = async (payload) => {
+    try {
+      await updateEmployee(payload);
+      fetchEmployees();
+    } catch (error) {
+      setError(error.message || "Erro desconhecido");
+    }
+  }
+
+  const handleDelete = async (id) => {
+    try {
+      await deleteEmployee(id);
+
+      setRefreshKey((prevKey) => prevKey + 1);
+      if (allEmployees.length === 1 && currentPage > 1) {
+        setCurrentPage(currentPage - 1);
+      }
+    } catch (error) {
+      setError(error.message || "Erro desconhecido");
+    }
+  };
+
   return (
     <div className="employees-page">
       <div className="funcionarios-container">
@@ -156,13 +162,14 @@ function EmployeesTable() {
           <h1>Funcionários</h1>
           <button
             className="btn btn-primary"
-            onClick={openCreateModal} // <-- MUDANÇA AQUI
+            onClick={openCreateModal}
           >
             CADASTRAR FUNCIONÁRIO
           </button>
         </header>
 
-        {/* --- CÓDIGO CORRIGIDO (Como no Figma) --- */}
+        {/* --- RESOLUÇÃO DO CONFLITO 4 --- */}
+        {/* Usamos a barra de busca da 'main', pois ela usa 'searchText' e 'handleSearchChange' */}
         <div className="search-container">
           {/* 1. A label estática "Pesquisar" (que estava faltando) */}
           <label htmlFor="searchInput" className="search-label">Pesquisar</label>
@@ -171,7 +178,7 @@ function EmployeesTable() {
               type="text"
               ref={searchInputRef}
               id="searchInput"
-              placeholder="Nome, cargo/função" {/* 2. Placeholder de volta */}
+              placeholder="Nome, cargo/função"
               className="search-input"
               value={searchText}
               onChange={handleSearchChange}
@@ -195,18 +202,16 @@ function EmployeesTable() {
             <tbody>
               {allEmployees.length > 0 ? (
                 allEmployees.map((emp) => (
-                  // --- INÍCIO DAS MUDANÇAS: Linha clicável ---
                   <tr key={emp.id} className="clickable-row" onClick={() => openViewModal(emp)}>
                     <td data-label="Nome Completo">{emp.name}</td>
                     <td data-label="Cargo/Função">{emp.function}</td>
                     <td data-label="Celular">{emp.cellphone || '—'}</td>
                     {/* Coluna "Ações" removida */}
                   </tr>
-                  // --- FIM DAS MUDANÇAS ---
                 ))
               ) : (
                 <tr>
-                  <td colSpan="3" className="no-results"> {/* Colspan 3, não 4 */}
+                  <td colSpan="3" className="no-results">
                     {loading ? "Buscando..." : "Nenhum funcionário encontrado."}
                   </td>
                 </tr>
@@ -216,38 +221,41 @@ function EmployeesTable() {
         </main>
 
         <footer className="funcionarios-footer">
+          {/* Lógica de paginação virá aqui */}
           <span>Linhas por página: {ITEMS_PER_PAGE} </span>
           {totalCount > 0 && (
             <span>{firstRowIndex}-{lastRowIndex} de {totalCount}</span>
           )}
 
+          {/* Adicionar ícones de navegação aqui */}
           <div className="pagination-controls">
             <button
               className='btn btn-primary'
               onClick={goToPreviousPage}
               disabled={currentPage === 1}
             >
-              &lt; Anterior
+              Anterior
             </button>
             <button
               className='btn btn-primary'
               onClick={goToNextPage}
               disabled={currentPage >= totalPages || totalPages === 0 || loading}
             >
-              Próximo &gt;
+              Próximo
             </button>
           </div>
         </footer>
       </div>
 
-      {/* --- INÍCIO DAS MUDANÇAS: Chamada do Modal Universal --- */}
       <FuncionarioModal
         isOpen={isModalOpen}
         onClose={closeModal}
         initialMode={modalMode}
         employee={selectedEmployee}
+        handleCreate={handleCreate}
+        handleUpdate={handleUpdate}
+        handleDelete={handleDelete}
       />
-      {/* --- FIM DAS MUDANÇAS --- */}
     </div>
   );
 }
