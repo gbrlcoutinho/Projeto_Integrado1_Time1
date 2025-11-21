@@ -8,14 +8,6 @@ function Sidebar() {
   return (
     <aside className="sidebar">
       <div className="sidebar-top">
-
-        <div className="scale-selector">
-          <label>Escala</label>
-          <select>
-            <option>Plantão - ETA</option>
-          </select>
-        </div>
-
         <nav className="sidebar-nav">
           <ul>
             <li>
