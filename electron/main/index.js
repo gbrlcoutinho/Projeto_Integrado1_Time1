@@ -6,14 +6,10 @@ import os from 'node:os'
 import { update } from './update'
 import { db } from "../database/setup";
 import { migrateDB } from '../database/migrate'
-<<<<<<< HEAD
-import { getEmployeesPaginated } from '../database/employeeRepository'
 import { AuthService } from '../preload/services/auth'
 import { seedDB } from '../database/seed'
-=======
 import "dotenv/config";
 import "./handlers";
->>>>>>> 1f85906503133fe29694745465427232e36bd076
 
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))

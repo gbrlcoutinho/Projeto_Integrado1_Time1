@@ -14,16 +14,10 @@ function EmployeesTable() {
 
   // Estados para a funcionalidade da pesquisa
   const [searchTerm, setSearchTerm] = useState('');
-
-  // --- INÍCIO DAS MUDANÇAS: Estados do Modal ---
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState('create');
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
-  // --- FIM DAS MUDANÇAS ---
-
   const [searchText, setSearchText] = useState('');
   const searchInputRef = useRef(null);
 
+  // --- Estados do Modal ---
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState('create');
   const [selectedEmployee, setSelectedEmployee] = useState(null);
