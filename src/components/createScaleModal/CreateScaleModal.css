@@ -219,15 +219,9 @@ input:checked+.slider:before {
     font-size: 13px;
 }
 
-.days-grid {
-    display: grid;
-    grid-template-columns: repeat(7, auto);
-    gap: 8px;
-    text-align: center;
-    justify-content: space-between;
-}
-
 .modal-day-cell {
+    flex: 1 0;
+    height: 40px;
     padding: 6px 10px;
     display: inline-flex;
     align-items: center;
