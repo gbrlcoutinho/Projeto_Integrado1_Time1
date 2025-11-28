@@ -1,3 +1,5 @@
+import { randomUUID } from "crypto";
+
 export class ScaleRepository {
   constructor(db) {
     this.db = db;
@@ -87,6 +89,27 @@ export class ScaleRepository {
     }
   }
 
+  getShiftsByDay(scaleId, date) {
+    try {
+      const shifts = this.db.prepare(`
+        SELECT employee_id
+        FROM scale_shifts
+        WHERE scale_id = ? AND date = ?
+      `).all(scaleId, date);
+
+      return shifts.map(shift => shift.employee_id);
+      
+    } catch (error) {
+      console.error("Erro ao buscar turnos por dia:", error);
+      throw new Error(`Falha ao buscar turnos por dia no banco de dados: ${error.message}`);
+    }
+  }
+
+  executeShiftTransaction(callback) {
+    const transaction = this.db.transaction(callback);
+    return transaction(this);
+  }
+
   addShift(scaleID, employeeId, date) {
     try {
       const stmt = this.db.prepare(`
@@ -95,7 +118,7 @@ export class ScaleRepository {
       `);
       
       const shiftId = randomUUID();
-      const result = stmt.run(shiftId, scaleID, employeeId, date);
+      stmt.run(shiftId, scaleID, employeeId, date);
 
       return shiftId;
     } catch (error) {

@@ -406,12 +406,32 @@ export class ScaleService {
     }
   }
 
-  addShiftToDay(params) {
+updateManualShifts(params) {
     try {
-      const { scaleId, employeeId, date } = params;
+      const { scaleId, date, finalEmployeeIds } = updateManualShiftsSchema.parse(params);
+      
+      const currentlyAllocatedIds = this.repository.getShiftsByDay(scaleId, date);
+      
+      const finalSet = new Set(finalEmployeeIds);
+      const allocatedSet = new Set(currentlyAllocatedIds);
 
-      return this.repository.addShift(scaleId, employeeId, date);
-    } catch (error) {
+      const idsToRemove = currentlyAllocatedIds.filter(id => !finalSet.has(id));
+      const idsToAdd = finalEmployeeIds.filter(id => !allocatedSet.has(id));
+      
+      this.repository.executeShiftTransaction((repo) => {
+        
+        idsToRemove.forEach(employeeId => {
+          repo.removeShift(scaleId, employeeId, date); 
+        });
+
+        idsToAdd.forEach(employeeId => {
+          repo.addShift(scaleId, employeeId, date); 
+        });
+      });
+      
+      return { success: true, changes: idsToAdd.length + idsToRemove.length };
+
+    } catch (err) {
       if (err instanceof ZodError) {
         throw new Error(`Erro de validação dos dados: ${err.message}`);
       }
@@ -421,23 +441,34 @@ export class ScaleService {
       throw new Error(`Erro inesperado: ${err.message}`);
     }
   }
-
-  removeShiftToDay(params) {
+  
+  getEmployeesForDayModal(params) {
     try {
-      const { scaleId, employeeId, date } = params;
-
-      return this.repository.removeShift(scaleId, employeeId, date);
-    } catch (error) {
+      const { date, scaleType, scaleId } = getDayModalDataSchema.parse(params);
+      
+      // 1. Busca todos os funcionários elegíveis para esse tipo de escala
+      const eligibleEmployees = this.employeeRepository.findEligible(scaleType); 
+      
+      // 2. Busca apenas os IDs dos que JÁ estão trabalhando nesse dia e escala
+      const allocatedEmployeeIds = this.repository.getShiftsByDay(scaleId, date);
+      
+      return {
+        eligibleEmployees,
+        allocatedEmployeeIds,
+        date,
+        scaleId,
+        scaleType
+      };
+    } catch (err) {
       if (err instanceof ZodError) {
-        throw new Error(`Erro de validação dos dados: ${err.message}`);
+        throw new Error(`Erro de validação: ${err.message}`);
       }
-      if (err instanceof SqliteError) {
-        throw new Error(`Erro no banco de dados: ${err.message}`);
-      }
-      throw new Error(`Erro inesperado: ${err.message}`);
+      throw err;
     }
   }
 }
+
+
 
 const getScaleSchema = z.object({
   month: z.string().regex(/^\d{4}-\d{2}$/, "Formato de mês inválido (use YYYY-MM)"),
@@ -462,8 +493,14 @@ const createScaleSchema = z.object({
   holidays: z.array(z.string())
 });
 
-const shiftOperationSchema = z.object({
-  scaleId: z.string("Id da escala inválido"),
-  employeeId: z.string("Id do funcionário inválido"),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Formato de data inválido (use YYYY-MM-DD)")
-})
+const getDayModalDataSchema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Formato de data inválido (YYYY-MM-DD)"),
+  scaleType: z.enum(['ETA', 'PLANTAO_TARDE'], "Tipo de escala inválido"),
+  scaleId: z.string("ID da escala inválido")
+});
+
+const updateManualShiftsSchema = z.object({
+  scaleId: z.string("ID da escala inválido"),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Formato de data inválido (use YYYY-MM-DD)"),
+  finalEmployeeIds: z.array(z.string("ID de funcionário inválido"))
+});

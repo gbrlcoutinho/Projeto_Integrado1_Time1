@@ -62,17 +62,17 @@ ipcMain.handle('create-scale', async (_, params) => {
   }
 });
 
-ipcMain.handle('add-shift-to-day', async (_, params) => {
+ipcMain.handle('get-day-modal-data', async (_, params) => {
   try {
-    return scaleService.addShiftToDay(params);
+    return scaleService.getEmployeesForDayModal(params);
   } catch (err) {
     return { error: err?.message ?? String(err) };
   }
 });
 
-ipcMain.handle('remove-shift-from-day', async (_, params) => {
+ipcMain.handle('update-manual-shifts', async (_, params) => {
   try {
-    return scaleService.removeShiftFromDay(params);
+    return scaleService.updateManualShifts(params);
   } catch (err) {
     return { error: err?.message ?? String(err) };
   }

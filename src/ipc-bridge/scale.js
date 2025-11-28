@@ -14,3 +14,18 @@ export const getScale = async (params) => {
 export const createScale = async (params) => {
   return await window.ipcRenderer.invoke('create-scale', params);
 };
+
+/**
+ * Busca dados para o modal de edição de turno: elegíveis e alocados para o dia.
+ */
+export const getDayModalData = async (params) => {
+  return await window.ipcRenderer.invoke('get-day-modal-data', params);
+};
+
+/**
+ * Atualiza os turnos manualmente com base na lista final de IDs.
+ */
+export const updateManualShifts = async (params) => {
+  return await window.ipcRenderer.invoke('update-manual-shifts', params);
+};
+

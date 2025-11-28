@@ -15,7 +15,7 @@ export const seedDB = (db) => {
     const employeeService = new EmployeeService(db);
 
     // ETA employees with various restrictions
-    employeeService.create({
+    const employee1Id = employeeService.create({
       name: "João Silva",
       function: "Operador da ETA",
       cellphone: "(85) 98888-1111",
@@ -48,7 +48,7 @@ export const seedDB = (db) => {
     });
 
     // PLANTAO_TARDE employees with various restrictions  
-    employeeService.create({
+    const employee2Id = employeeService.create({
       name: "Carlos Ferreira",
       function: "Encanador",
       cellphone: "(85) 99999-1111",
@@ -118,6 +118,30 @@ export const seedDB = (db) => {
     console.log("- 4 PLANTAO_TARDE-only employees with various restrictions");
     console.log("- 4 Multi-scale employees with various restrictions");
     console.log("Ready for scale generation testing!");
+
+    const scaleIdETA = v4();
+    const scaleIdTarde = v4();
+    const mesTeste = "2025-11";
+
+    const stmtScale = db.prepare(`
+      INSERT INTO scales (id, month, type, status) 
+      VALUES (?, ?, ?, ?)
+    `);
+
+    stmtScale.run(scaleIdETA, mesTeste, "ETA", "RASCUNHO");
+    stmtScale.run(scaleIdTarde, mesTeste, "PLANTAO_TARDE", "RASCUNHO");
+
+    const stmtShift = db.prepare(`
+      INSERT INTO scale_shifts (id, scale_id, employee_id, date) 
+      VALUES (?, ?, ?, ?)
+    `);
+
+    stmtShift.run(v4(), scaleIdETA, employee1Id, `${mesTeste}-01`);
+
+    stmtShift.run(v4(), scaleIdETA, employee1Id, `${mesTeste}-05`);
+    stmtShift.run(v4(), scaleIdTarde, employee2Id, `${mesTeste}-05`);
+
+    stmtShift.run(v4(), scaleIdTarde, employee2Id, `${mesTeste}-10`);
 
   } catch (error) {
     const message = error instanceof Error ? error.message : JSON.stringify(error);
