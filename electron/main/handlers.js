@@ -61,3 +61,19 @@ ipcMain.handle('create-scale', async (_, params) => {
     return { error: err?.message ?? String(err) };
   }
 });
+
+ipcMain.handle('add-shift-to-day', async (_, params) => {
+  try {
+    return scaleService.addShiftToDay(params);
+  } catch (err) {
+    return { error: err?.message ?? String(err) };
+  }
+});
+
+ipcMain.handle('remove-shift-from-day', async (_, params) => {
+  try {
+    return scaleService.removeShiftFromDay(params);
+  } catch (err) {
+    return { error: err?.message ?? String(err) };
+  }
+});

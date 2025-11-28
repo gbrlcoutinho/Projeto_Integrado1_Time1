@@ -1,4 +1,4 @@
-import z, { ZodError } from "zod";
+import z, { uuid, ZodError } from "zod";
 import { ScaleRepository } from "../repositories/scale.js";
 import { EmployeeRepository } from "../repositories/employee.js";
 import { randomUUID } from "crypto";
@@ -405,6 +405,38 @@ export class ScaleService {
       throw new Error(`Falha ao salvar escalas no banco de dados: ${error.message}`);
     }
   }
+
+  addShiftToDay(params) {
+    try {
+      const { scaleId, employeeId, date } = params;
+
+      return this.repository.addShift(scaleId, employeeId, date);
+    } catch (error) {
+      if (err instanceof ZodError) {
+        throw new Error(`Erro de validação dos dados: ${err.message}`);
+      }
+      if (err instanceof SqliteError) {
+        throw new Error(`Erro no banco de dados: ${err.message}`);
+      }
+      throw new Error(`Erro inesperado: ${err.message}`);
+    }
+  }
+
+  removeShiftToDay(params) {
+    try {
+      const { scaleId, employeeId, date } = params;
+
+      return this.repository.removeShift(scaleId, employeeId, date);
+    } catch (error) {
+      if (err instanceof ZodError) {
+        throw new Error(`Erro de validação dos dados: ${err.message}`);
+      }
+      if (err instanceof SqliteError) {
+        throw new Error(`Erro no banco de dados: ${err.message}`);
+      }
+      throw new Error(`Erro inesperado: ${err.message}`);
+    }
+  }
 }
 
 const getScaleSchema = z.object({
@@ -429,3 +461,9 @@ const createScaleSchema = z.object({
   }),
   holidays: z.array(z.string())
 });
+
+const shiftOperationSchema = z.object({
+  scaleId: z.string("Id da escala inválido"),
+  employeeId: z.string("Id do funcionário inválido"),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Formato de data inválido (use YYYY-MM-DD)")
+})

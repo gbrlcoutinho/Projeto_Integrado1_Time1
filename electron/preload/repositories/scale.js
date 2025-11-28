@@ -87,4 +87,40 @@ export class ScaleRepository {
     }
   }
 
+  addShift(scaleID, employeeId, date) {
+    try {
+      const stmt = this.db.prepare(`
+        INSERT INTO scale_shifts(id, scale_id, employee_id, date)
+        VALUES (?, ?, ?, ?)
+      `);
+      
+      const shiftId = randomUUID();
+      const result = stmt.run(shiftId, scaleID, employeeId, date);
+
+      return shiftId;
+    } catch (error) {
+      console.error('Erro ao adicionar turno:', error);
+      throw new Error(`Falha ao adicionar turno no banco de dados: ${error.message}`);
+    }
+  }
+
+  removeShift(scaleID, employeeId, date) {
+    try {
+      const stmt = this.db.prepare(`
+        DELETE FROM scale_shifts
+        WHERE scale_id = ? AND employee_id = ? AND date = ?
+      `);
+
+      const result = stmt.run(scaleID, employeeId, date);
+
+      if (result.changes === 0) {
+        throw new Error("Turno não encontrado");
+      }
+
+      return result;
+    } catch (error) {
+      console.error('Erro ao remover turno:', error);
+      throw new Error(`Falha ao remover turno no banco de dados: ${error.message}`);
+    }
+  }
 }
