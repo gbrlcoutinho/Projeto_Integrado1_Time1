@@ -246,6 +246,10 @@ input:checked+.slider:before {
     font-weight: 500;
 }
 
+.modal-day-cell.selected:hover {
+    background-color: #2C3E50DD;
+}
+
 .modal-day-cell.empty {
     cursor: default;
     pointer-events: none;

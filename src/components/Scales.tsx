@@ -3,10 +3,18 @@ import './Scales.css';
 import { getScale } from '../ipc-bridge/scale';
 import CreateScaleModal from './createScaleModal/CreateScaleModal';
 import EditManualModal from './createScaleModal/EditManualModal'; // Modal de edição manual
+import { CreateScaleResult } from '../../electron/preload/services/scale';
+
+export type ScaleShift = {
+  dateStr: string;
+  employee_name: string;
+  employee_id: string;
+  scaleType: "ETA" | "PLANTAO_TARDE";
+}
 
 const Scales: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [shifts, setShifts] = useState<any[]>([]);
+  const [shifts, setShifts] = useState<ScaleShift[]>([]);
 
   // IDs das escalas
   const [scaleIds, setScaleIds] = useState({ ETA: null, PLANTAO_TARDE: null });
@@ -21,56 +29,66 @@ const Scales: React.FC = () => {
 
   const weekDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
+  const fetchScale = async () => {
+    try {
+      const year = currentDate.getFullYear();
+      const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+      const monthString = `${year}-${month}`;
+
+      const [etaResult, plantaoResult] = await Promise.all([
+        getScale({ month: monthString, type: 'ETA' }),
+        getScale({ month: monthString, type: 'PLANTAO_TARDE' })
+      ]);
+
+      // Atualiza IDs
+      setScaleIds({
+        ETA: etaResult?.id || null,
+        PLANTAO_TARDE: plantaoResult?.id || null
+      });
+
+      const hasRealData =
+        (etaResult?.shifts?.length ?? 0) > 0 ||
+        (plantaoResult?.shifts?.length ?? 0) > 0;
+
+      if (hasRealData) {
+        const allShifts: ScaleShift[] = [];
+
+        type DatabaseShift = {
+          date: string; // yyyy-MM-dd
+          employee_function: string;
+          employee_id: string;
+          employee_name: string;
+          id: string;
+        }
+
+        allShifts.push(
+          ...(etaResult.shifts as DatabaseShift[]).map(dbShift => ({
+            dateStr: dbShift.date,
+            employee_name: dbShift.employee_name,
+            employee_id: dbShift.employee_id,
+            scaleType: "ETA" as const
+          }))
+        );
+        allShifts.push(
+          ...(plantaoResult.shifts as DatabaseShift[]).map(dbShift => ({
+            dateStr: dbShift.date,
+            employee_name: dbShift.employee_name,
+            employee_id: dbShift.employee_id,
+            scaleType: "PLANTAO_TARDE" as const
+          }))
+        );
+
+        setShifts(allShifts);
+      }
+    } catch (error) {
+      console.error("Erro ao buscar escala:", error);
+      // Se der erro no fetch, não necessariamente devemos limpar shifts (modo teste)
+      setScaleIds({ ETA: null, PLANTAO_TARDE: null });
+    }
+  };
+
   // ------ BUSCA ESCALAS QUANDO MÊS MUDA OU REFRESH É SOLICITADO ------
   useEffect(() => {
-    const fetchScale = async () => {
-      try {
-        const year = currentDate.getFullYear();
-        const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-        const monthString = `${year}-${month}`;
-
-        const [etaResult, plantaoResult] = await Promise.all([
-          getScale({ month: monthString, type: 'ETA' }),
-          getScale({ month: monthString, type: 'PLANTAO_TARDE' })
-        ]);
-
-        // Atualiza IDs
-        setScaleIds({
-          ETA: etaResult?.id || null,
-          PLANTAO_TARDE: plantaoResult?.id || null
-        });
-
-        const hasRealData =
-          (etaResult?.shifts?.length ?? 0) > 0 ||
-          (plantaoResult?.shifts?.length ?? 0) > 0;
-
-        if (hasRealData) {
-          const allShifts: any[] = [];
-
-          if (etaResult?.shifts) {
-            allShifts.push(
-              ...etaResult.shifts.map((s: any) => ({ ...s, scaleType: 'ETA' }))
-            );
-          }
-
-          if (plantaoResult?.shifts) {
-            allShifts.push(
-              ...plantaoResult.shifts.map((s: any) => ({
-                ...s,
-                scaleType: 'PLANTAO_TARDE'
-              }))
-            );
-          }
-
-          setShifts(allShifts);
-        }
-      } catch (error) {
-        console.error("Erro ao buscar escala:", error);
-        // Se der erro no fetch, não necessariamente devemos limpar shifts (modo teste)
-        setScaleIds({ ETA: null, PLANTAO_TARDE: null });
-      }
-    };
-
     fetchScale();
   }, [currentDate, refreshKey]);
 
@@ -85,39 +103,15 @@ const Scales: React.FC = () => {
   };
 
   // ------ Recebe resultado da CRIAÇÃO da escala ------
-const handleCreateScale = async (result: any) => {
+  const handleCreateScale = async (result: CreateScaleResult) => {
     try {
-      if (result.success && result.data) {
-        const allShifts: any[] = [];
-
-        if (result.data.ETA?.shifts) {
-          allShifts.push(
-            ...result.data.ETA.shifts.map((shift: any) => ({
-              ...shift,
-              scaleType: "ETA",
-            }))
-          );
-        }
-
-        if (result.data.PLANTAO_TARDE?.shifts) {
-          allShifts.push(
-            ...result.data.PLANTAO_TARDE.shifts.map((shift: any) => ({
-              ...shift,
-              scaleType: "PLANTAO_TARDE",
-            }))
-          );
-        }
-
-        // 1️⃣ Atualização IMEDIATA da interface
-        setShifts(allShifts);
-
-        // 2️⃣ Se for modo TESTE, não recarrega do banco (mantém visual)
-        if (!result.testing) {
-          setRefreshKey((old) => old + 1);
-        }
-
-        console.log(`Visualizando ${allShifts.length} turnos gerados.`);
+      if (!result.success) {
+        return alert(result.errorMessage);
       }
+
+      // setShifts(result.shifts);
+      console.log(result.shifts);
+      await fetchScale();
     } catch (error) {
       console.error("Erro ao criar escala:", error);
       alert("Erro ao criar escala. Tente novamente.");
@@ -186,7 +180,7 @@ const handleCreateScale = async (result: any) => {
 
       const isToday = cell.dateStr === todayStr;
 
-      const dailyShifts = shifts.filter(s => s.date === cell.dateStr);
+      const dailyShifts = shifts.filter(s => s.dateStr === cell.dateStr);
 
       return (
         <div
@@ -247,7 +241,7 @@ const handleCreateScale = async (result: any) => {
         </div>
 
         <div className="action-buttons">
-          <button className="btn-action primary" onClick={() => setIsCreateModalOpen(true)}>
+          <button className="btn-action primary" onClick={() => setIsCreateModalOpen(true)} disabled={!!scaleIds.ETA || !!scaleIds.PLANTAO_TARDE}>
             CRIAR ESCALA
           </button>
         </div>

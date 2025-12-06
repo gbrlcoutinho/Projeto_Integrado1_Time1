@@ -95,7 +95,7 @@ export class EmployeeRepository {
     }
   }
 
-  findEligible(availabilityType = null) {
+  findEligible(availabilityType) {
     try {
       let selectClause = `
         SELECT
