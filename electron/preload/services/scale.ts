@@ -27,8 +27,10 @@ export type CreateScaleResult = {
 export class ScaleService {
   private repository;
   private employeeRepository;
+  private db: any;
 
   constructor(db: any) {
+    this.db = db;
     this.repository = new ScaleRepository(db);
     this.employeeRepository = new EmployeeRepository(db);
   }
@@ -115,14 +117,14 @@ export class ScaleService {
       // Create ETA holidays
       if (holidays && holidays.length > 0) {
         for (const day of holidays) {
-           this.repository.addHoliday(etaScaleId, day);
+          this.repository.addHoliday(etaScaleId, day);
         }
       }
 
       // Create PLANTAO_TARDE holidays
       if (holidays && holidays.length > 0) {
         for (const day of holidays) {
-           this.repository.addHoliday(plantaoScaleId, day);
+          this.repository.addHoliday(plantaoScaleId, day);
         }
       }
 
@@ -190,11 +192,11 @@ export class ScaleService {
       if (!force && idsToAdd.length > 0) {
         const violations: string[] = [];
         const dateObj = new Date(date + 'T12:00:00');
-        const dayOfWeek = dateObj.getDay(); 
+        const dayOfWeek = dateObj.getDay();
         const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-        
+
         const dayOfMonth = parseInt(date.split('-')[2], 10);
-        
+
         const isHoliday = this.repository.isHoliday(scaleId, dayOfMonth);
 
         type EmployeeData = { id: string, name: string, restrictions: string | null };
@@ -202,10 +204,10 @@ export class ScaleService {
 
         for (const employee of employeesToCheck) {
           const employeeName = employee.name;
-          
+
           let restrictions: string[] = [];
           if (employee.restrictions) {
-             restrictions = employee.restrictions.split(',');
+            restrictions = employee.restrictions.split(',');
           }
 
           if (isWeekend && restrictions.includes('WEEKENDS')) {
@@ -213,12 +215,12 @@ export class ScaleService {
           }
 
           if (isHoliday && restrictions.includes('HOLYDAYS')) {
-             violations.push(`${employeeName} possui restrição para Feriados.`);
+            violations.push(`${employeeName} possui restrição para Feriados.`);
           }
 
           const hasShift = this.repository.hasShiftOnDate(employee.id, date);
           if (hasShift) {
-             violations.push(`${employeeName} já está alocado em outra escala neste dia.`);
+            violations.push(`${employeeName} já está alocado em outra escala neste dia.`);
           }
         }
 
@@ -244,8 +246,8 @@ export class ScaleService {
       return { success: true, changes: idsToAdd.length + idsToRemove.length };
 
     } catch (err) {
-       if (err instanceof ZodError) throw new Error(`Erro validação: ${err.message}`);
-       throw new Error(`Erro inesperado: ${err instanceof Error ? err.message : JSON.stringify(err)}`);
+      if (err instanceof ZodError) throw new Error(`Erro validação: ${err.message}`);
+      throw new Error(`Erro inesperado: ${err instanceof Error ? err.message : JSON.stringify(err)}`);
     }
   }
 
@@ -273,6 +275,59 @@ export class ScaleService {
       throw err;
     }
   }
+
+  // Verificar se há colisão (funcionário já alocado nesta data)
+  checkCollision(scaleId: string, employeeId: string, date: string, scaleType: string): boolean {
+    const stmt = this.db.prepare(`
+    SELECT COUNT(*) as count 
+    FROM scale_shifts 
+    WHERE scale_id = ? AND employee_id = ? AND date = ?
+  `);
+
+    const result = stmt.get(scaleId, employeeId, date) as { count: number };
+    return result.count > 0;
+  }
+
+  // Verificar regra de 3 dias de folga para ETA
+  checkETARestRule(scaleId: string, employeeId: string, newDate: string): boolean {
+    try {
+      const date = new Date(newDate);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+
+      // Buscar all shifts do funcionário neste mês
+      const stmt = this.db.prepare(`
+      SELECT date FROM scale_shifts 
+      WHERE scale_id = ? AND employee_id = ?
+      ORDER BY date ASC
+    `);
+
+      const shifts = stmt.all(scaleId, employeeId) as Array<{ date: string }>;
+
+      // Converter newDate para número de dia
+      const newDay = parseInt(newDate.split('-')[2], 10);
+
+      // Verificar se há um trabalho anterior
+      for (const shift of shifts) {
+        const shiftDay = parseInt(shift.date.split('-')[2], 10);
+
+        // Se encontrar um trabalho anterior
+        if (shiftDay < newDay) {
+          // Verificar se há pelo menos 3 dias de folga
+          const daysBetween = newDay - shiftDay;
+          if (daysBetween < 4) { // Precisa de 4 dias (3 de folga + 1 de trabalho)
+            return true; // Viola a regra
+          }
+        }
+      }
+
+      return false; // Não viola
+    } catch (error) {
+      console.error('Erro ao verificar regra de ETA:', error);
+      return false;
+    }
+  }
+
 }
 
 const getScaleSchema = z.object({
@@ -311,3 +366,6 @@ const updateManualShiftsSchema = z.object({
   finalEmployeeIds: z.array(z.string("ID de funcionário inválido")),
   force: z.boolean().optional().default(false)
 });
+
+
+
