@@ -112,6 +112,20 @@ export class ScaleService {
         status: 'RASCUNHO'
       });
 
+      // Create ETA holidays
+      if (holidays && holidays.length > 0) {
+        for (const day of holidays) {
+           this.repository.addHoliday(etaScaleId, day);
+        }
+      }
+
+      // Create PLANTAO_TARDE holidays
+      if (holidays && holidays.length > 0) {
+        for (const day of holidays) {
+           this.repository.addHoliday(plantaoScaleId, day);
+        }
+      }
+
       // Create ETA shifts
       const etaShifts = shifts
         .filter(s => s.scaleType === "ETA")
@@ -164,23 +178,65 @@ export class ScaleService {
 
   updateManualShifts(params: any) {
     try {
-      const { scaleId, date, finalEmployeeIds } = updateManualShiftsSchema.parse(params);
+      const { scaleId, date, finalEmployeeIds, force } = updateManualShiftsSchema.parse(params);
 
       const currentlyAllocatedIds = this.repository.getShiftsByDay(scaleId, date);
-
+      const currentSet = new Set(currentlyAllocatedIds);
       const finalSet = new Set(finalEmployeeIds);
-      const allocatedSet = new Set(currentlyAllocatedIds);
 
-      const idsToRemove = currentlyAllocatedIds.filter(id => !finalSet.has(id));
-      const idsToAdd = finalEmployeeIds.filter(id => !allocatedSet.has(id));
+      const idsToAdd = finalEmployeeIds.filter((id: string) => !currentSet.has(id));
+      const idsToRemove = currentlyAllocatedIds.filter((id: string) => !finalSet.has(id));
 
-      this.repository.executeShiftTransaction((repo) => {
+      if (!force && idsToAdd.length > 0) {
+        const violations: string[] = [];
+        const dateObj = new Date(date + 'T12:00:00');
+        const dayOfWeek = dateObj.getDay(); 
+        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+        
+        const dayOfMonth = parseInt(date.split('-')[2], 10);
+        
+        const isHoliday = this.repository.isHoliday(scaleId, dayOfMonth);
 
-        idsToRemove.forEach(employeeId => {
+        type EmployeeData = { id: string, name: string, restrictions: string | null };
+        const employeesToCheck: EmployeeData[] = this.employeeRepository.findByIds(idsToAdd);
+
+        for (const employee of employeesToCheck) {
+          const employeeName = employee.name;
+          
+          let restrictions: string[] = [];
+          if (employee.restrictions) {
+             restrictions = employee.restrictions.split(',');
+          }
+
+          if (isWeekend && restrictions.includes('WEEKENDS')) {
+            violations.push(`${employeeName} possui restrição para Finais de Semana.`);
+          }
+
+          if (isHoliday && restrictions.includes('HOLYDAYS')) {
+             violations.push(`${employeeName} possui restrição para Feriados.`);
+          }
+
+          const hasShift = this.repository.hasShiftOnDate(employee.id, date);
+          if (hasShift) {
+             violations.push(`${employeeName} já está alocado em outra escala neste dia.`);
+          }
+        }
+
+        if (violations.length > 0) {
+          return {
+            success: false,
+            requireConfirmation: true,
+            violations: violations
+          };
+        }
+      }
+
+      this.repository.executeShiftTransaction((repo: any) => {
+        idsToRemove.forEach((employeeId: string) => {
           repo.removeShift(scaleId, employeeId, date);
         });
 
-        idsToAdd.forEach(employeeId => {
+        idsToAdd.forEach((employeeId: string) => {
           repo.addShift(scaleId, employeeId, date);
         });
       });
@@ -188,13 +244,8 @@ export class ScaleService {
       return { success: true, changes: idsToAdd.length + idsToRemove.length };
 
     } catch (err) {
-      if (err instanceof ZodError) {
-        throw new Error(`Erro de validação dos dados: ${err.message}`);
-      }
-      if (err instanceof SqliteError) {
-        throw new Error(`Erro no banco de dados: ${err.message}`);
-      }
-      throw new Error(`Erro inesperado: ${err instanceof Error ? err.message : JSON.stringify(err)}`);
+       if (err instanceof ZodError) throw new Error(`Erro validação: ${err.message}`);
+       throw new Error(`Erro inesperado: ${err instanceof Error ? err.message : JSON.stringify(err)}`);
     }
   }
 
@@ -256,6 +307,7 @@ const getDayModalDataSchema = z.object({
 
 const updateManualShiftsSchema = z.object({
   scaleId: z.string("ID da escala inválido"),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Formato de data inválido (use YYYY-MM-DD)"),
-  finalEmployeeIds: z.array(z.string("ID de funcionário inválido"))
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Formato de data inválido"),
+  finalEmployeeIds: z.array(z.string("ID de funcionário inválido")),
+  force: z.boolean().optional().default(false)
 });

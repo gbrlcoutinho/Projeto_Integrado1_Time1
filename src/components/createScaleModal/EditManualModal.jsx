@@ -12,7 +12,8 @@ function EditManualModal({ isOpen, onClose, onComplete, date, scaleIds }) {
     
     const [scaleType, setScaleType] = useState('PLANTAO_TARDE');
     const [loading, setLoading] = useState(true);
-
+    const [pendingViolations, setPendingViolations] = useState(null);
+    
     const year = date ? date.split('-')[0] : '';
     const monthIndex = date ? parseInt(date.split('-')[1], 10) : 1;
     const day = date ? parseInt(date.split('-')[2], 10) : 1;
@@ -87,31 +88,52 @@ function EditManualModal({ isOpen, onClose, onComplete, date, scaleIds }) {
         });
     };
 
-    const handleConcluir = async () => {
+    const handleConcluir = async (force = false) => {
         setLoading(true);
         try {
             const promises = [];
+            const scaleRequests = [];
 
             // Salva alterações da ETA (se escala existir)
             if (scaleIds?.ETA) {
-                promises.push(updateManualShifts({
+                const request = {
                     scaleId: scaleIds.ETA,
                     date,
                     finalEmployeeIds: allocations.ETA,
-                }));
+                    force
+                };
+                scaleRequests.push({ type: 'ETA', request });
+                promises.push(updateManualShifts(request));
             }
 
             // Salva alterações do PLANTAO_TARDE (se escala existir)
             if (scaleIds?.PLANTAO_TARDE) {
-                promises.push(updateManualShifts({
+                const request = {
                     scaleId: scaleIds.PLANTAO_TARDE,
                     date,
                     finalEmployeeIds: allocations.PLANTAO_TARDE,
-                }));
+                    force
+                };
+                scaleRequests.push({ type: 'PLANTAO_TARDE', request });
+                promises.push(updateManualShifts(request));
             }
 
             const results = await Promise.all(promises);
             
+            // Verifica se algum resultado requer confirmação (violations)
+            const needsConfirmation = results.find(r => r.requireConfirmation);
+            
+            if (needsConfirmation && !force) {
+                // Coleta todas as violações de todos os resultados
+                const allViolations = results
+                    .filter(r => r.violations)
+                    .flatMap(r => r.violations);
+                
+                setPendingViolations(allViolations);
+                setLoading(false);
+                return; // Não fecha o modal, espera confirmação do usuário
+            }
+
             // Verifica se houve erro em alguma das requisições
             const error = results.find(r => r.error);
             if (error) throw new Error(error.error);
@@ -124,6 +146,15 @@ function EditManualModal({ isOpen, onClose, onComplete, date, scaleIds }) {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleConfirmViolations = () => {
+        setPendingViolations(null);
+        handleConcluir(true); // Chama novamente com force=true
+    };
+
+    const handleCancelViolations = () => {
+        setPendingViolations(null);
     };
 
     // Filtra funcionários para exibir na lista (baseado na aba selecionada)
@@ -215,7 +246,7 @@ function EditManualModal({ isOpen, onClose, onComplete, date, scaleIds }) {
                     </button>
                     <button 
                         className="btn-nav btn-finish" 
-                        onClick={handleConcluir}
+                        onClick={() => handleConcluir(false)}
                         // Botão desabilitado apenas se estiver carregando. 
                         // Se uma escala existir e a outra não, permite salvar a que existe.
                         disabled={loading || (!scaleIds?.ETA && !scaleIds?.PLANTAO_TARDE)}
@@ -223,6 +254,55 @@ function EditManualModal({ isOpen, onClose, onComplete, date, scaleIds }) {
                         {loading ? 'SALVANDO...' : 'CONCLUIR'}
                     </button>
                 </div>
+
+                {/* Modal de Confirmação de Violações */}
+                {pendingViolations && (
+                    <div className="modal-overlay" onClick={handleCancelViolations}>
+                        <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{maxWidth: '500px'}}>
+                            <button className="close-icon" onClick={handleCancelViolations}>✕</button>
+                            
+                            <h2 className="modal-title">⚠️ Restrições Detectadas</h2>
+                            
+                            <div style={{padding: '20px', maxHeight: '300px', overflowY: 'auto'}}>
+                                <p style={{marginBottom: '15px', color: '#666'}}>
+                                    As seguintes restrições foram encontradas:
+                                </p>
+                                <ul style={{listStyle: 'none', padding: 0}}>
+                                    {pendingViolations.map((violation, index) => (
+                                        <li key={index} style={{
+                                            padding: '10px',
+                                            marginBottom: '8px',
+                                            background: '#fff3cd',
+                                            borderLeft: '4px solid #ffc107',
+                                            borderRadius: '4px'
+                                        }}>
+                                            {violation}
+                                        </li>
+                                    ))}
+                                </ul>
+                                <p style={{marginTop: '20px', fontWeight: 'bold', color: '#333'}}>
+                                    Deseja continuar mesmo assim?
+                                </p>
+                            </div>
+
+                            <div className="modal-footer">
+                                <button 
+                                    className="btn-nav btn-prev-step1" 
+                                    onClick={handleCancelViolations}
+                                >
+                                    CANCELAR
+                                </button>
+                                <button 
+                                    className="btn-nav btn-finish" 
+                                    onClick={handleConfirmViolations}
+                                    style={{background: '#ffc107'}}
+                                >
+                                    CONFIRMAR E SALVAR
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

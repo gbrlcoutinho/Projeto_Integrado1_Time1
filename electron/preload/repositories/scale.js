@@ -146,4 +146,47 @@ export class ScaleRepository {
       throw new Error(`Falha ao remover turno no banco de dados: ${error.message}`);
     }
   }
+
+  hasShiftOnDate(employeeId, date) {
+    try {
+      const result = this.db.prepare(`
+        SELECT COUNT(*) as count 
+        FROM scale_shifts 
+        WHERE employee_id = ? AND date = ?
+      `).get(employeeId, date);
+      
+      return result.count > 0;
+    } catch (error) {
+      console.error("Erro ao verificar turno existente:", error);
+      return false;
+    }
+  }
+
+  addHoliday(scaleId, day) {
+    try {
+      const stmt = this.db.prepare(`
+        INSERT INTO scale_holidays (id, scale_id, day)
+        VALUES (?, ?, ?)
+      `);
+      stmt.run(randomUUID(), scaleId, day);
+    } catch (error) {
+      console.error("Erro ao adicionar feriado:", error);
+      throw new Error("Falha ao salvar feriado.");
+    }
+  }
+
+  isHoliday(scaleId, day) {
+    try {
+      const result = this.db.prepare(`
+        SELECT COUNT(*) as count 
+        FROM scale_holidays 
+        WHERE scale_id = ? AND day = ?
+      `).get(scaleId, day);
+      
+      return result.count > 0;
+    } catch (error) {
+      console.error("Erro ao verificar feriado:", error);
+      return false;
+    }
+  }
 }
