@@ -190,6 +190,9 @@ export class ScaleService {
       const idsToRemove = currentlyAllocatedIds.filter((id: string) => !finalSet.has(id));
 
       if (!force && idsToAdd.length > 0) {
+        // Buscar o tipo da escala
+        const scaleType = this.repository.getScaleType(scaleId);
+
         const violations: string[] = [];
         const dateObj = new Date(date + 'T12:00:00');
         const dayOfWeek = dateObj.getDay();
@@ -221,6 +224,14 @@ export class ScaleService {
           const hasShift = this.repository.hasShiftOnDate(employee.id, date);
           if (hasShift) {
             violations.push(`${employeeName} já está alocado em outra escala neste dia.`);
+          }
+
+          // Regra D: Descanso de 3 dias (Exclusiva ETA)
+          if (scaleType === 'ETA') {
+            const violatesRest = this.checkETARestRule(scaleId, employee.id, date);
+            if (violatesRest) {
+              violations.push(`${employeeName} não cumpre o descanso obrigatório de 3 dias da ETA.`);
+            }
           }
         }
 
@@ -279,55 +290,81 @@ export class ScaleService {
   // Verificar se há colisão (funcionário já alocado nesta data)
   checkCollision(scaleId: string, employeeId: string, date: string, scaleType: string): boolean {
     const stmt = this.db.prepare(`
-    SELECT COUNT(*) as count 
-    FROM scale_shifts 
-    WHERE scale_id = ? AND employee_id = ? AND date = ?
-  `);
+      SELECT COUNT(*) as count 
+      FROM scale_shifts 
+      WHERE employee_id = ? AND date = ?
+    `);
 
-    const result = stmt.get(scaleId, employeeId, date) as { count: number };
+    const result = stmt.get(employeeId, date) as { count: number };
+    
     return result.count > 0;
   }
 
-  // Verificar regra de 3 dias de folga para ETA
+  // Verificar regra de 3 dias de folga para ETA (Bidirecional)
   checkETARestRule(scaleId: string, employeeId: string, newDate: string): boolean {
     try {
-      const date = new Date(newDate);
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-
-      // Buscar all shifts do funcionário neste mês
+      // Buscar todos os turnos do funcionário nesta escala
       const stmt = this.db.prepare(`
-      SELECT date FROM scale_shifts 
-      WHERE scale_id = ? AND employee_id = ?
-      ORDER BY date ASC
-    `);
+        SELECT date FROM scale_shifts 
+        WHERE scale_id = ? AND employee_id = ?
+        ORDER BY date ASC
+      `);
 
       const shifts = stmt.all(scaleId, employeeId) as Array<{ date: string }>;
 
-      // Converter newDate para número de dia
+      // Converter newDate para número de dia (ex: 15)
       const newDay = parseInt(newDate.split('-')[2], 10);
 
-      // Verificar se há um trabalho anterior
       for (const shift of shifts) {
         const shiftDay = parseInt(shift.date.split('-')[2], 10);
+        
+        const diff = Math.abs(newDay - shiftDay);
 
-        // Se encontrar um trabalho anterior
-        if (shiftDay < newDay) {
-          // Verificar se há pelo menos 3 dias de folga
-          const daysBetween = newDay - shiftDay;
-          if (daysBetween < 4) { // Precisa de 4 dias (3 de folga + 1 de trabalho)
-            return true; // Viola a regra
-          }
+        if (diff > 0 && diff < 4) {
+           return true; // Violação detectada
         }
       }
 
-      return false; // Não viola
+      return false; // Tudo limpo
     } catch (error) {
       console.error('Erro ao verificar regra de ETA:', error);
       return false;
     }
   }
 
+  checkRestrictions(scaleId: string, employeeId: string, date: string): string | null {
+    try {
+      const dateObj = new Date(date + 'T12:00:00'); // T12 para evitar problemas de fuso
+      const dayOfWeek = dateObj.getDay(); // 0 = Dom, 6 = Sáb
+      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+      
+      const dayOfMonth = parseInt(date.split('-')[2], 10);
+      const isHoliday = this.repository.isHoliday(scaleId, dayOfMonth);
+
+      // Busca dados do funcionário para ver as restrições
+      // findByIds retorna um array, pegamos o primeiro
+      const employees = this.employeeRepository.findByIds([employeeId]);
+      if (employees.length === 0) return null;
+      
+      const employee = employees[0];
+      const restrictions = employee.restrictions ? employee.restrictions.split(',') : [];
+
+      // Regra: Fim de Semana
+      if (isWeekend && restrictions.includes('WEEKENDS')) {
+        return `O funcionário ${employee.name} possui restrição para Finais de Semana.`;
+      }
+
+      // Regra: Feriados
+      if (isHoliday && restrictions.includes('HOLYDAYS')) {
+        return `O funcionário ${employee.name} possui restrição para Feriados.`;
+      }
+
+      return null; // Nenhuma restrição violada
+    } catch (error) {
+      console.error("Erro ao verificar restrições:", error);
+      return null; // Em caso de erro técnico, deixamos passar (ou lance erro se preferir rigor)
+    }
+  }
 }
 
 const getScaleSchema = z.object({

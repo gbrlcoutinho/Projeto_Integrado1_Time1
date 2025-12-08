@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import './Scales.css';
-import { getScale } from '../ipc-bridge/scale';
+import { getScale, moveShiftDragDrop } from '../ipc-bridge/scale';
 import CreateScaleModal from './createScaleModal/CreateScaleModal';
 import EditManualModal from './createScaleModal/EditManualModal';
+import ConfirmationModal from './modal/ConfirmationModal';
 import { CreateScaleResult } from '../../electron/preload/services/scale';
 
 export type ScaleShift = {
@@ -25,6 +26,15 @@ const Scales: React.FC = () => {
   const [draggedShift, setDraggedShift] = useState<ScaleShift | null>(null);
   const [dragError, setDragError] = useState<string | null>(null);
   const [validDropDates, setValidDropDates] = useState<Set<string>>(new Set());
+  const [dragConflictModal, setDragConflictModal] = useState<{
+    isOpen: boolean;
+    message: string;
+    pendingMove: any;
+  }>({
+    isOpen: false,
+    message: '',
+    pendingMove: null
+  });
 
   const weekDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
@@ -158,58 +168,82 @@ const Scales: React.FC = () => {
   };
 
   // Handler para drop em dia
-const handleDropOnDay = async (e: React.DragEvent, targetDate: string) => {
-  e.preventDefault();
-  e.stopPropagation();
+  const handleDropOnDay = async (e: React.DragEvent, targetDate: string) => {
+    e.preventDefault();
+    e.stopPropagation();
 
-  if (!draggedShift) return;
+    if (!draggedShift) return;
 
-  // Verifica se a data é válida (sem colisão local)
-  if (!validDropDates.has(targetDate)) {
-    setDragError(`Funcionário "${draggedShift.employee_name}" já possui uma alocação nesta data!`);
-    setDraggedShift(null);
-    setValidDropDates(new Set());
-    return;
-  }
-
-  try {
-    // Chamar backend para salvar
-    const result = await window.ipcRenderer.invoke('move-shift-drag-drop', {
+    const moveParams = {
       scaleId: scaleIds[draggedShift.scaleType],
       scaleType: draggedShift.scaleType,
       employeeId: draggedShift.employee_id,
       oldDate: draggedShift.dateStr,
-      newDate: targetDate
-    });
+      newDate: targetDate,
+      force: false
+    };
 
-    if (!result.success) {
-      setDragError(result.error || 'Erro ao mover shift');
+    try {
+      const result = await moveShiftDragDrop(moveParams);
+
+      // CASO A: Backend pede confirmação
+      if (!result.success && result.requireConfirmation) {
+        setDragConflictModal({
+          isOpen: true,
+          message: `Conflito detectado:\n${result.error}\n\nDeseja forçar a realocação?`,
+          pendingMove: { ...moveParams, force: true }
+        });
+        setDraggedShift(null);
+        setValidDropDates(new Set());
+        return;
+      }
+
+      // CASO B: Erro real (sem possibilidade de forçar)
+      if (!result.success) {
+        setDragError(result.error || 'Erro ao mover shift');
+        setDraggedShift(null);
+        setValidDropDates(new Set());
+        return;
+      }
+
+      // CASO C: Sucesso
+      const updatedShifts = shifts.map(shift =>
+        shift.id === draggedShift.id || (shift.employee_id === draggedShift.employee_id && shift.dateStr === draggedShift.dateStr)
+          ? { ...shift, dateStr: targetDate }
+          : shift
+      );
+
+      setShifts(updatedShifts);
       setDraggedShift(null);
       setValidDropDates(new Set());
-      return;
+      setDragError(null);
+
+      await fetchScale();
+    } catch (error) {
+      console.error('Erro ao salvar shift:', error);
+      setDragError('Erro ao salvar mudança. Tente novamente.');
+      setDraggedShift(null);
+      setValidDropDates(new Set());
     }
+  };
+  // Handler para forçar movimento após confirmação
+  const handleForceMove = async () => {
+    if (!dragConflictModal.pendingMove) return;
 
-    // Atualizar localmente
-    const updatedShifts = shifts.map(shift =>
-      shift.id === draggedShift.id || (shift.employee_id === draggedShift.employee_id && shift.dateStr === draggedShift.dateStr)
-        ? { ...shift, dateStr: targetDate }
-        : shift
-    );
+    try {
+      const result = await moveShiftDragDrop(dragConflictModal.pendingMove);
 
-    setShifts(updatedShifts);
-    setDraggedShift(null);
-    setValidDropDates(new Set());
-    setDragError(null);
+      if (result.success) {
+        await fetchScale();
+        setDragConflictModal({ isOpen: false, message: '', pendingMove: null });
+      } else {
+        alert('Erro ao forçar mudança: ' + result.error);
+      }
+    } catch (error) {
+      alert('Erro inesperado ao forçar mudança.');
+    }
+  };
 
-    // Recarregar dados para garantir sincronização
-    await fetchScale();
-  } catch (error) {
-    console.error('Erro ao salvar shift:', error);
-    setDragError('Erro ao salvar mudança. Tente novamente.');
-    setDraggedShift(null);
-    setValidDropDates(new Set());
-  }
-};
   // Handler para sair do drag
   const handleDragLeave = () => {
     // Opcional: você pode adicionar lógica aqui
@@ -381,6 +415,16 @@ const handleDropOnDay = async (e: React.DragEvent, targetDate: string) => {
         scaleIds={scaleIds}
         onClose={() => setEditModal({ isOpen: false, date: null })}
         onComplete={() => setRefreshKey(old => old + 1)}
+      />
+
+      <ConfirmationModal
+        isOpen={dragConflictModal.isOpen}
+        onClose={() => setDragConflictModal({ isOpen: false, message: '', pendingMove: null })}
+        onConfirm={handleForceMove}
+        title="Restrição de Escala"
+        message={dragConflictModal.message}
+        confirmText="FORÇAR MUDANÇA"
+        cancelText="CANCELAR"
       />
     </div>
   );

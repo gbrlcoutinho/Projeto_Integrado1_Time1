@@ -26,17 +26,15 @@ ipcMain.handle('get-all-employees', async (_, params) => {
 // Handler para mover shift via drag-drop
 ipcMain.handle('move-shift-drag-drop', async (_, params) => {
   try {
-    const { scaleId, scaleType, employeeId, oldDate, newDate } = params;
+    const { scaleId, scaleType, employeeId, oldDate, newDate, force } = params;
 
-    // Validações
     if (!scaleId || !scaleType || !employeeId || !oldDate || !newDate) {
-      return {
-        success: false,
-        error: 'Parâmetros inválidos'
-      };
+      return { success: false, error: 'Parâmetros inválidos' };
     }
 
-    // Validar colisão no novo dia
+    const violations = [];
+
+    // 1. Validação: Colisão (Já trabalha nesse dia?)
     const hasCollisionOnNewDate = scaleService.checkCollision(
       scaleId,
       employeeId,
@@ -45,13 +43,16 @@ ipcMain.handle('move-shift-drag-drop', async (_, params) => {
     );
 
     if (hasCollisionOnNewDate) {
-      return {
-        success: false,
-        error: `Funcionário já possui alocação nesta data`
-      };
+      violations.push(`O funcionário já está alocado neste dia (${newDate}).`);
     }
 
-    // Se for ETA, validar regra de 3 dias de folga
+    // 2. Validação: Restrições do Funcionário (Fim de semana / Feriado)
+    const restrictionError = scaleService.checkRestrictions(scaleId, employeeId, newDate);
+    if (restrictionError) {
+      violations.push(restrictionError);
+    }
+
+    // 3. Validação: Regra de Descanso ETA (3 dias)
     if (scaleType === 'ETA') {
       const violatesRestRule = scaleService.checkETARestRule(
         scaleId,
@@ -60,23 +61,28 @@ ipcMain.handle('move-shift-drag-drop', async (_, params) => {
       );
 
       if (violatesRestRule) {
-        return {
-          success: false,
-          error: 'Funcionário não pode trabalhar - necessário 3 dias de folga após trabalho anterior'
-        };
+        violations.push('O funcionário não cumpre o descanso mínimo de 3 dias.');
       }
     }
 
-    // Remover shift da data antiga
+    // 4. Verificação Final e Confirmação
+    if (violations.length > 0 && !force) {
+      return {
+        success: false,
+        requireConfirmation: true,
+        error: violations.join('\n')
+      };
+    }
+    
+    // 5. Execução (Salvar no banco)
     scaleService.repository.removeShift(scaleId, employeeId, oldDate);
-
-    // Adicionar shift na nova data
     scaleService.repository.addShift(scaleId, employeeId, newDate);
 
     return {
       success: true,
       message: 'Shift movido com sucesso'
     };
+
   } catch (err) {
     console.error('Erro ao mover shift:', err);
     return {

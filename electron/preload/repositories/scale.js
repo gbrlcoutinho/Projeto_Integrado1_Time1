@@ -189,4 +189,14 @@ export class ScaleRepository {
       return false;
     }
   }
+
+  getScaleType(scaleId) {
+    try {
+      const result = this.db.prepare('SELECT type FROM scales WHERE id = ?').get(scaleId);
+      return result ? result.type : null;
+    } catch (error) {
+      console.error("Erro ao buscar tipo da escala:", error);
+      return null;
+    }
+  }
 }
