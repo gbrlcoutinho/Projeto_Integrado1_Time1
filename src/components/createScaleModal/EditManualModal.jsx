@@ -274,7 +274,8 @@ function EditManualModal({ isOpen, onClose, onComplete, date, scaleIds }) {
                                             marginBottom: '8px',
                                             background: '#fff3cd',
                                             borderLeft: '4px solid #ffc107',
-                                            borderRadius: '4px'
+                                            borderRadius: '4px',
+                                            color: '#000'
                                         }}>
                                             {violation}
                                         </li>
