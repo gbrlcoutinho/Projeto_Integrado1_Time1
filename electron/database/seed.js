@@ -14,11 +14,12 @@ export const seedDB = (db) => {
 
     const employeeService = new EmployeeService(db);
 
-    // ETA employees with various restrictions
+    // ETA employees
     const employee1Id = employeeService.create({
       name: "João Silva",
       function: "Operador da ETA",
       cellphone: "(85) 98888-1111",
+      email: "joao.silva@saae.com",
       availabilities: ["ETA"],
       restrictions: [] // No restrictions
     });
@@ -27,6 +28,7 @@ export const seedDB = (db) => {
       name: "Maria Santos",
       function: "Operador da ETA",
       cellphone: "(85) 98888-2222",
+      email: "maria.santos@saae.com",
       availabilities: ["ETA"],
       restrictions: ["WEEKENDS"] // Cannot work weekends
     });
@@ -35,6 +37,7 @@ export const seedDB = (db) => {
       name: "Pedro Oliveira",
       function: "Operador da ETA",
       cellphone: "(85) 98888-3333",
+      email: "pedro.oliveira@saae.com",
       availabilities: ["ETA"],
       restrictions: ["HOLYDAYS"] // Cannot work holidays
     });
@@ -43,15 +46,17 @@ export const seedDB = (db) => {
       name: "Ana Costa",
       function: "Operador da ETA",
       cellphone: "(85) 98888-4444",
+      email: "ana.costa@saae.com",
       availabilities: ["ETA"],
       restrictions: ["WEEKENDS", "HOLYDAYS"] // Cannot work weekends or holidays
     });
 
-    // PLANTAO_TARDE employees with various restrictions  
+    // PLANTAO_TARDE employees with various restrictions  
     const employee2Id = employeeService.create({
       name: "Carlos Ferreira",
       function: "Encanador",
       cellphone: "(85) 99999-1111",
+      email: "carlos.ferreira@saae.com",
       availabilities: ["PLANTAO_TARDE"],
       restrictions: [] // No restrictions
     });
@@ -60,6 +65,7 @@ export const seedDB = (db) => {
       name: "Lucia Rocha",
       function: "Encanador",
       cellphone: "(85) 99999-2222",
+      email: "lucia.rocha@saae.com",
       availabilities: ["PLANTAO_TARDE"],
       restrictions: ["WEEKENDS"] // Cannot work weekends
     });
@@ -68,6 +74,7 @@ export const seedDB = (db) => {
       name: "Roberto Lima",
       function: "Encanador",
       cellphone: "(85) 99999-3333",
+      email: "roberto.lima@saae.com",
       availabilities: ["PLANTAO_TARDE"],
       restrictions: ["HOLYDAYS"] // Cannot work holidays
     });
@@ -76,6 +83,7 @@ export const seedDB = (db) => {
       name: "Fernanda Souza",
       function: "Encanador",
       cellphone: "(85) 99999-4444",
+      email: "fernanda.souza@saae.com",
       availabilities: ["PLANTAO_TARDE"],
       restrictions: ["WEEKENDS", "HOLYDAYS"] // Cannot work weekends or holidays
     });
@@ -85,6 +93,7 @@ export const seedDB = (db) => {
       name: "Ricardo Alves",
       function: "Operador da ETA",
       cellphone: "(85) 97777-1111",
+      email: "ricardo.alves@saae.com",
       availabilities: ["ETA", "PLANTAO_TARDE"],
       restrictions: [] // No restrictions, very flexible
     });
@@ -93,6 +102,7 @@ export const seedDB = (db) => {
       name: "Juliana Mendes",
       function: "Encanador",
       cellphone: "(85) 97777-2222",
+      email: "juliana.mendes@saae.com",
       availabilities: ["ETA", "PLANTAO_TARDE"],
       restrictions: ["WEEKENDS"] // Multi-scale but no weekends
     });
@@ -101,6 +111,7 @@ export const seedDB = (db) => {
       name: "Marcos Pereira",
       function: "Operador da ETA",
       cellphone: "(85) 97777-3333",
+      email: "marcos.pereira@saae.com",
       availabilities: ["ETA", "PLANTAO_TARDE"],
       restrictions: ["HOLYDAYS"] // Multi-scale but no holidays
     });
@@ -109,15 +120,12 @@ export const seedDB = (db) => {
       name: "Sandra Barbosa",
       function: "Encanador",
       cellphone: "(85) 97777-4444",
+      email: "sandra.barbosa@saae.com",
       availabilities: ["ETA", "PLANTAO_TARDE"],
       restrictions: ["WEEKENDS", "HOLYDAYS"] // Multi-scale but restricted
     });
 
-    console.log("Database seeded with 12 test employees:");
-    console.log("- 4 ETA-only employees with various restrictions");
-    console.log("- 4 PLANTAO_TARDE-only employees with various restrictions");
-    console.log("- 4 Multi-scale employees with various restrictions");
-    console.log("Ready for scale generation testing!");
+    console.log("Database seeded with 12 test employees.");
 
     const scaleIdETA = v4();
     const scaleIdTarde = v4();
@@ -142,6 +150,8 @@ export const seedDB = (db) => {
     stmtShift.run(v4(), scaleIdTarde, employee2Id, `${mesTeste}-05`);
 
     stmtShift.run(v4(), scaleIdTarde, employee2Id, `${mesTeste}-10`);
+
+    console.log("Seed complete.");
 
   } catch (error) {
     const message = error instanceof Error ? error.message : JSON.stringify(error);

@@ -5,7 +5,8 @@ CREATE TABLE IF NOT EXISTS employees (
     name TEXT NOT NULL,
     function TEXT NOT NULL,
     cellphone TEXT NOT NULL,
-    deleted INTEGER NOT NULL DEFAULT 0
+    deleted INTEGER NOT NULL DEFAULT 0,
+    email TEXT NOT NULL
 );
 
 COMMIT;
