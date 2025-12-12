@@ -6,6 +6,7 @@ import EditManualModal from './createScaleModal/EditManualModal';
 import ConfirmationModal from './modal/ConfirmationModal';
 import { CreateScaleResult } from '../../electron/preload/services/scale';
 import { differenceInCalendarMonths } from "date-fns";
+import { DownloadScaleButton } from './publish-button';
 
 export type ScaleShift = {
   dateStr: string;
@@ -385,6 +386,12 @@ const Scales: React.FC = () => {
         </div>
 
         <div className="action-buttons">
+          <DownloadScaleButton
+            scaleDate={currentDate}
+            shifts={shifts}
+            disabled={!scaleIds.ETA || !scaleIds.PLANTAO_TARDE || !ableToCreate}
+          />
+
           <button
             className="btn-action primary"
             onClick={() => setIsCreateModalOpen(true)}
