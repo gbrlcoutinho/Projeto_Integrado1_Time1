@@ -5,6 +5,7 @@ import CreateScaleModal from './createScaleModal/CreateScaleModal';
 import EditManualModal from './createScaleModal/EditManualModal';
 import ConfirmationModal from './modal/ConfirmationModal';
 import { CreateScaleResult } from '../../electron/preload/services/scale';
+import { differenceInCalendarMonths } from "date-fns";
 
 export type ScaleShift = {
   dateStr: string;
@@ -328,9 +329,9 @@ const Scales: React.FC = () => {
             {dailyShifts.map((shift, i) => {
               const backgroundColor = shift.scaleType === 'ETA' ? '#FFE599' : '#6FA8DC';
               const textColor = shift.scaleType === 'ETA' ? '#000' : '#fff';
-              const isDragging = draggedShift?.id === shift.id || 
-                                (draggedShift?.employee_id === shift.employee_id && 
-                                 draggedShift?.dateStr === shift.dateStr);
+              const isDragging = draggedShift?.id === shift.id ||
+                (draggedShift?.employee_id === shift.employee_id &&
+                  draggedShift?.dateStr === shift.dateStr);
 
               return (
                 <div
@@ -363,6 +364,9 @@ const Scales: React.FC = () => {
     return rows;
   };
 
+  const monthDiff = differenceInCalendarMonths(new Date(), currentDate);
+  const ableToCreate = monthDiff <= 0 && monthDiff >= -1;
+
   const monthStr = currentDate.toLocaleDateString('pt-BR', { month: 'long' });
   const monthCap = monthStr.charAt(0).toUpperCase() + monthStr.slice(1);
   const yearStr = currentDate.getFullYear();
@@ -381,7 +385,11 @@ const Scales: React.FC = () => {
         </div>
 
         <div className="action-buttons">
-          <button className="btn-action primary" onClick={() => setIsCreateModalOpen(true)} disabled={!!scaleIds.ETA || !!scaleIds.PLANTAO_TARDE}>
+          <button
+            className="btn-action primary"
+            onClick={() => setIsCreateModalOpen(true)}
+            disabled={!!scaleIds.ETA || !!scaleIds.PLANTAO_TARDE || !ableToCreate}
+          >
             CRIAR ESCALA
           </button>
         </div>
