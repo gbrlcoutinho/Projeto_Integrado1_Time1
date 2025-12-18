@@ -20,6 +20,14 @@ const Scales: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [shifts, setShifts] = useState<ScaleShift[]>([]);
   const [scaleIds, setScaleIds] = useState({ ETA: null, PLANTAO_TARDE: null });
+  const [holidays, setHolidays] = useState<{ [key: string]: string }>({});
+
+  const isHoliday = (dateStr: string): { isHoliday: boolean; name?: string } => {
+    if (holidays[dateStr]) {
+      return { isHoliday: true, name: holidays[dateStr] };
+    }
+    return { isHoliday: false };
+  };
   const [editModal, setEditModal] = useState<{ isOpen: boolean; date: string | null }>({ isOpen: false, date: null });
   const [refreshKey, setRefreshKey] = useState(0);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -55,6 +63,51 @@ const Scales: React.FC = () => {
         ETA: etaResult?.id || null,
         PLANTAO_TARDE: plantaoResult?.id || null
       });
+
+      // Processar feriados vindos do backend
+      console.log('=== DEBUG FERIADOS ===');
+      console.log('ETA Result completo:', JSON.stringify(etaResult, null, 2));
+      console.log('Plantao Result completo:', JSON.stringify(plantaoResult, null, 2));
+      console.log('ETA keys:', etaResult ? Object.keys(etaResult) : 'null');
+      console.log('Plantao keys:', plantaoResult ? Object.keys(plantaoResult) : 'null');
+      
+      const holidaysMap: { [key: string]: string } = {};
+      
+      // Tentar diferentes possíveis estruturas de dados
+      if (etaResult?.holidays && Array.isArray(etaResult.holidays)) {
+        console.log('✅ Feriados ETA encontrados:', etaResult.holidays);
+        etaResult.holidays.forEach((holiday: any) => {
+          console.log('Processando holiday ETA:', holiday);
+          const dateKey = holiday.date || holiday.holiday_date;
+          const name = holiday.name || holiday.holiday_name || 'Feriado';
+          if (dateKey) {
+            holidaysMap[dateKey] = name;
+            console.log(`Adicionado: ${dateKey} = ${name}`);
+          }
+        });
+      } else {
+        console.log('❌ ETA não tem holidays ou não é array:', etaResult?.holidays);
+      }
+      
+      if (plantaoResult?.holidays && Array.isArray(plantaoResult.holidays)) {
+        console.log('✅ Feriados PLANTAO encontrados:', plantaoResult.holidays);
+        plantaoResult.holidays.forEach((holiday: any) => {
+          console.log('Processando holiday PLANTAO:', holiday);
+          const dateKey = holiday.date || holiday.holiday_date;
+          const name = holiday.name || holiday.holiday_name || 'Feriado';
+          if (dateKey) {
+            holidaysMap[dateKey] = name;
+            console.log(`Adicionado: ${dateKey} = ${name}`);
+          }
+        });
+      } else {
+        console.log('❌ PLANTAO não tem holidays ou não é array:', plantaoResult?.holidays);
+      }
+      
+      console.log('Holidays Map final:', JSON.stringify(holidaysMap, null, 2));
+      console.log('Total de feriados:', Object.keys(holidaysMap).length);
+      console.log('=== FIM DEBUG ===');
+      setHolidays(holidaysMap);
 
       const hasRealData =
         (etaResult?.shifts?.length ?? 0) > 0 ||
@@ -315,17 +368,21 @@ const Scales: React.FC = () => {
       const isToday = cell.dateStr === todayStr;
       const isValidDropTarget = validDropDates.has(cell.dateStr);
       const dailyShifts = shifts.filter(s => s.dateStr === cell.dateStr);
+      const holidayInfo = isHoliday(cell.dateStr);
 
       return (
         <div
           key={idx}
-          className={`day-cell ${!cell.isCurrentMonth ? 'inactive' : ''} ${isToday ? 'today' : ''} ${isValidDropTarget && draggedShift ? 'valid-drop-target' : ''}`}
+          className={`day-cell ${!cell.isCurrentMonth ? 'inactive' : ''} ${isToday ? 'today' : ''} ${isValidDropTarget && draggedShift ? 'valid-drop-target' : ''} ${holidayInfo.isHoliday && cell.isCurrentMonth ? 'holiday' : ''}`}
           onClick={() => handleDayClick(cell.dateStr)}
           onDragOver={handleDragOver}
           onDrop={(e) => handleDropOnDay(e, cell.dateStr)}
           onDragLeave={handleDragLeave}
+          title={holidayInfo.isHoliday ? holidayInfo.name : ''}
         >
-          <div className="day-number">{cell.day}</div>
+          <div className="day-number">
+            {cell.day}
+          </div>
           <div className="day-events">
             {dailyShifts.map((shift, i) => {
               const backgroundColor = shift.scaleType === 'ETA' ? '#FFE599' : '#6FA8DC';

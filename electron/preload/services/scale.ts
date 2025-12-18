@@ -71,6 +71,7 @@ export class ScaleService {
         cellphone: string;
         restrictions: string | null;
         availabilities: string;
+        email: string;
       }
 
       // Get employee details with restrictions from database

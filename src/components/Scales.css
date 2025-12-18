@@ -214,6 +214,11 @@
     margin: 6px 0;
 }
 
+.day-cell.holiday .day-number {
+  color: #d9534f;
+  font-weight: bold;
+}
+
 .day-events {
     display: flex;
     flex-direction: column;

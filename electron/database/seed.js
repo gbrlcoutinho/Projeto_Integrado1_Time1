@@ -14,116 +14,96 @@ export const seedDB = (db) => {
 
     const employeeService = new EmployeeService(db);
 
-    // ETA employees
-    const employee1Id = employeeService.create({
-      name: "João Silva",
-      function: "Operador da ETA",
-      cellphone: "(85) 98888-1111",
-      email: "joao.silva@saae.com",
-      availabilities: ["ETA"],
-      restrictions: [] // No restrictions
-    });
+    const employees = [
+      {
+        name: "João Silva",
+        function: "Operador da ETA",
+        email: "joao.silva@example.com",
+        availabilities: ["ETA"],
+        restrictions: [] // No restrictions
+      },
+      {
+        name: "Maria Santos",
+        function: "Encanador",
+        email: "maria.santos@example.com",
+        availabilities: ["PLANTAO_TARDE"],
+        restrictions: ["WEEKENDS"] // Cannot work weekends
+      },
+      {
+        name: "Pedro Costa",
+        function: "Operador da ETA",
+        email: "pedro.costa@example.com",
+        availabilities: ["ETA", "PLANTAO_TARDE"],
+        restrictions: ["HOLYDAYS"] // Cannot work holidays
+      },
+      {
+        name: "Ana Costa",
+        function: "Operador da ETA",
+        email: "ana.costa@saae.com",
+        availabilities: ["ETA"],
+        restrictions: ["WEEKENDS", "HOLYDAYS"] // Cannot work weekends or holidays
+      },
+      {
+        name: "Carlos Ferreira",
+        function: "Encanador",
+        email: "carlos.ferreira@saae.com",
+        availabilities: ["PLANTAO_TARDE"],
+        restrictions: [] // No restrictions
+      },
+      {
+        name: "Lucia Rocha",
+        function: "Encanador",
+        email: "lucia.rocha@saae.com",
+        availabilities: ["PLANTAO_TARDE"],
+        restrictions: ["WEEKENDS"] // Cannot work weekends
+      },
+      {
+        name: "Roberto Lima",
+        function: "Encanador",
+        email: "roberto.lima@saae.com",
+        availabilities: ["PLANTAO_TARDE"],
+        restrictions: ["HOLYDAYS"] // Cannot work holidays
+      },
+      {
+        name: "Fernanda Souza",
+        function: "Encanador",
+        email: "fernanda.souza@saae.com",
+        availabilities: ["PLANTAO_TARDE"],
+        restrictions: ["WEEKENDS", "HOLYDAYS"] // Cannot work weekends or holidays
+      },
+      {
+        name: "Ricardo Alves",
+        function: "Operador da ETA",
+        email: "ricardo.alves@saae.com",
+        availabilities: ["ETA", "PLANTAO_TARDE"],
+        restrictions: [] // No restrictions, very flexible
+      },
+      {
+        name: "Juliana Mendes",
+        function: "Encanador",
+        email: "juliana.mendes@saae.com",
+        availabilities: ["ETA", "PLANTAO_TARDE"],
+        restrictions: ["WEEKENDS"] // Multi-scale but no weekends
+      },
+      {
+        name: "Marcos Pereira",
+        function: "Operador da ETA",
+        email: "marcos.pereira@saae.com",
+        availabilities: ["ETA", "PLANTAO_TARDE"],
+        restrictions: ["HOLYDAYS"] // Multi-scale but no holidays
+      },
+      {
+        name: "Sandra Barbosa",
+        function: "Encanador",
+        email: "sandra.barbosa@saae.com",
+        availabilities: ["ETA", "PLANTAO_TARDE"],
+        restrictions: ["WEEKENDS", "HOLYDAYS"] // Multi-scale but restricted
+      }
+    ];
 
-    employeeService.create({
-      name: "Maria Santos",
-      function: "Operador da ETA",
-      cellphone: "(85) 98888-2222",
-      email: "maria.santos@saae.com",
-      availabilities: ["ETA"],
-      restrictions: ["WEEKENDS"] // Cannot work weekends
-    });
-
-    employeeService.create({
-      name: "Pedro Oliveira",
-      function: "Operador da ETA",
-      cellphone: "(85) 98888-3333",
-      email: "pedro.oliveira@saae.com",
-      availabilities: ["ETA"],
-      restrictions: ["HOLYDAYS"] // Cannot work holidays
-    });
-
-    employeeService.create({
-      name: "Ana Costa",
-      function: "Operador da ETA",
-      cellphone: "(85) 98888-4444",
-      email: "ana.costa@saae.com",
-      availabilities: ["ETA"],
-      restrictions: ["WEEKENDS", "HOLYDAYS"] // Cannot work weekends or holidays
-    });
-
-    // PLANTAO_TARDE employees with various restrictions  
-    const employee2Id = employeeService.create({
-      name: "Carlos Ferreira",
-      function: "Encanador",
-      cellphone: "(85) 99999-1111",
-      email: "carlos.ferreira@saae.com",
-      availabilities: ["PLANTAO_TARDE"],
-      restrictions: [] // No restrictions
-    });
-
-    employeeService.create({
-      name: "Lucia Rocha",
-      function: "Encanador",
-      cellphone: "(85) 99999-2222",
-      email: "lucia.rocha@saae.com",
-      availabilities: ["PLANTAO_TARDE"],
-      restrictions: ["WEEKENDS"] // Cannot work weekends
-    });
-
-    employeeService.create({
-      name: "Roberto Lima",
-      function: "Encanador",
-      cellphone: "(85) 99999-3333",
-      email: "roberto.lima@saae.com",
-      availabilities: ["PLANTAO_TARDE"],
-      restrictions: ["HOLYDAYS"] // Cannot work holidays
-    });
-
-    employeeService.create({
-      name: "Fernanda Souza",
-      function: "Encanador",
-      cellphone: "(85) 99999-4444",
-      email: "fernanda.souza@saae.com",
-      availabilities: ["PLANTAO_TARDE"],
-      restrictions: ["WEEKENDS", "HOLYDAYS"] // Cannot work weekends or holidays
-    });
-
-    // Multi-availability employees (can work both scales)
-    employeeService.create({
-      name: "Ricardo Alves",
-      function: "Operador da ETA",
-      cellphone: "(85) 97777-1111",
-      email: "ricardo.alves@saae.com",
-      availabilities: ["ETA", "PLANTAO_TARDE"],
-      restrictions: [] // No restrictions, very flexible
-    });
-
-    employeeService.create({
-      name: "Juliana Mendes",
-      function: "Encanador",
-      cellphone: "(85) 97777-2222",
-      email: "juliana.mendes@saae.com",
-      availabilities: ["ETA", "PLANTAO_TARDE"],
-      restrictions: ["WEEKENDS"] // Multi-scale but no weekends
-    });
-
-    employeeService.create({
-      name: "Marcos Pereira",
-      function: "Operador da ETA",
-      cellphone: "(85) 97777-3333",
-      email: "marcos.pereira@saae.com",
-      availabilities: ["ETA", "PLANTAO_TARDE"],
-      restrictions: ["HOLYDAYS"] // Multi-scale but no holidays
-    });
-
-    employeeService.create({
-      name: "Sandra Barbosa",
-      function: "Encanador",
-      cellphone: "(85) 97777-4444",
-      email: "sandra.barbosa@saae.com",
-      availabilities: ["ETA", "PLANTAO_TARDE"],
-      restrictions: ["WEEKENDS", "HOLYDAYS"] // Multi-scale but restricted
-    });
+    for (const employee of employees) {
+      employeeService.create(employee);
+    }
 
     console.log("Database seeded with 12 test employees.");
 
