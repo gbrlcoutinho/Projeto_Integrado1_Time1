@@ -6,6 +6,7 @@ import os from 'node:os'
 import { update } from './update'
 import { db } from "../database/setup";
 import { migrateDB } from '../database/migrate'
+import { seedDB } from '../database/seed'
 import "dotenv/config";
 import "./handlers";
 
@@ -88,6 +89,7 @@ async function createWindow() {
 // Creates the window of the app.
 app.whenReady().then(() => {
   migrateDB(db);
+  // seedDB(db);
   // console.log(new AuthService().login("admin@mail.com", "admin"));
   createWindow();
 });

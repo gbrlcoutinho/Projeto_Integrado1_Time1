@@ -8,30 +8,22 @@ function Sidebar() {
   return (
     <aside className="sidebar">
       <div className="sidebar-top">
-
-        <div className="scale-selector">
-          <label>Escala</label>
-          <select>
-            <option>Plantão - ETA</option>
-          </select>
-        </div>
-
         <nav className="sidebar-nav">
           <ul>
             <li>
-              <a href="#inicio">
+              <a href="#/dashboard">
                 <FiHome />
                 <span>Início</span>
               </a>
             </li>
-            <li className="active"> {/* Adiciona a classe .active aqui para o item selecionado */}
-              <a href="#funcionarios">
+            <li>
+              <a href="#/funcionarios">
                 <FiUsers />
                 <span>Funcionários</span>
               </a>
             </li>
             <li>
-              <a href="#escalas">
+              <a href="#/escalas">
                 <FiCalendar />
                 <span>Escalas</span>
               </a>

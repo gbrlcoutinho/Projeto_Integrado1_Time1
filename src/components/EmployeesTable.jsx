@@ -4,6 +4,7 @@ import SearchIcon from './SearchIcon';
 import FuncionarioModal from './funcionarioModal/FuncionarioModal.jsx';
 import './EmployeesTable.css';
 
+// DADOS MOCKADOS (bloco antigo removido)
 const ITEMS_PER_PAGE = 10;
 
 function EmployeesTable() {
@@ -16,6 +17,7 @@ function EmployeesTable() {
   const [searchText, setSearchText] = useState('');
   const searchInputRef = useRef(null);
 
+  // --- Estados do Modal ---
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState('create');
   const [selectedEmployee, setSelectedEmployee] = useState(null);
@@ -60,6 +62,8 @@ function EmployeesTable() {
     fetchEmployees();
   }, [currentPage, searchTerm, refreshKey]);
 
+
+  // Estes useEffects vieram da 'main' e são necessários para a busca funcionar
   useEffect(() => {
     if (searchText === searchTerm) return;
     const delaySearch = setTimeout(() => {
@@ -152,7 +156,7 @@ function EmployeesTable() {
           <h1>Funcionários</h1>
           <button
             className="btn btn-primary"
-            onClick={openCreateModal} // <-- MUDANÇA AQUI
+            onClick={openCreateModal}
           >
             CADASTRAR FUNCIONÁRIO
           </button>
@@ -185,7 +189,7 @@ function EmployeesTable() {
               <tr>
                 <th><strong>Nome Completo</strong></th>
                 <th><strong>Cargo/Função</strong></th>
-                <th><strong>Celular</strong></th>
+                <th><strong>Email</strong></th>
                 {/* Coluna "Ações" removida para bater com o Figma */}
               </tr>
             </thead>
@@ -195,7 +199,7 @@ function EmployeesTable() {
                   <tr key={emp.id} className="clickable-row" onClick={() => openViewModal(emp)}>
                     <td data-label="Nome Completo">{emp.name}</td>
                     <td data-label="Cargo/Função">{emp.function}</td>
-                    <td data-label="Celular">{emp.cellphone || '—'}</td>
+                    <td data-label="Email">{emp.email || '—'}</td>
                     {/* Coluna "Ações" removida */}
                   </tr>
                 ))

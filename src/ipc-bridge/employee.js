@@ -12,6 +12,11 @@ export const getAllEmployees = async ({ page, limit, searchTerm = "" }) => {
   return await window.ipcRenderer.invoke('get-all-employees', { page, limit, searchTerm });
 };
 
+export const findEligibleEmployees = async (params) => {
+  // Error throw should be handled on frontend function call.
+  return await window.ipcRenderer.invoke('find-eligible-employees', params);
+};
+
 export const createEmployee = async (payload) => {
   // Error throw should be handled on frontend function call.
   return await window.ipcRenderer.invoke('create-employee', payload);
